@@ -13,6 +13,16 @@ nlu:
     - chào anh
     - chào chị
     - chào em
+    - chào buổi sáng nhé
+    - chào buổi tối nhé
+    - chào buổi chiều nhé
+    - xin chào mọi người
+    - chào cả nhà
+    - chào các bạn
+    - chào cậu
+    - chào bác
+    - chào cô
+    - chào chú
 
 - intent: goodbye
   examples: |
@@ -24,6 +34,13 @@ nlu:
     - hẹn gặp lại sau
     - chào tạm biệt nhé
     - tạm biệt bạn
+    - chúc ngủ ngon nhé
+    - hẹn gặp lại bạn sau
+    - tạm biệt mọi người
+    - chào tạm biệt cả nhà
+    - hẹn gặp lại sau nhé
+    - chúc ngủ ngon cả nhà
+    - tạm biệt các bạn
 
 - intent: turn_on_device
   examples: |
@@ -32,6 +49,25 @@ nlu:
     - bật [điều hòa](device_name)
     - khởi động [máy sưởi](device_name)
     - bật [tivi](device_name)
+    - bật [đèn phòng ngủ](device_name)
+    - bật [đèn phòng khách](device_name)
+    - bật [đèn nhà bếp](device_name)
+    - bật [đèn hành lang](device_name)
+    - bật [đèn phòng tắm](device_name)
+    - bật [đèn ban công](device_name)
+    - bật [đèn sân vườn](device_name)
+    - bật [đèn gara](device_name)
+    - mở [quạt trần](device_name)
+    - mở [quạt bàn](device_name)
+    - mở [quạt hơi nước](device_name)
+    - bật [điều hòa phòng ngủ](device_name)
+    - bật [điều hòa phòng khách](device_name)
+    - bật [máy sưởi phòng ngủ](device_name)
+    - bật [máy sưởi phòng tắm](device_name)
+    - bật [tivi phòng khách](device_name)
+    - bật [tivi phòng ngủ](device_name)
+    - bật [loa phòng khách](device_name)
+    - bật [loa phòng ngủ](device_name)
 
 - intent: turn_off_device
   examples: |
@@ -40,6 +76,63 @@ nlu:
     - tắt [điều hòa](device_name)
     - tắt [máy sưởi](device_name)
     - tắt [tivi](device_name)
+    - tắt [đèn phòng ngủ](device_name)
+    - tắt [đèn phòng khách](device_name)
+    - tắt [đèn nhà bếp](device_name)
+    - tắt [đèn hành lang](device_name)
+    - tắt [đèn phòng tắm](device_name)
+    - tắt [đèn ban công](device_name)
+    - tắt [đèn sân vườn](device_name)
+    - tắt [đèn gara](device_name)
+    - tắt [quạt trần](device_name)
+    - tắt [quạt bàn](device_name)
+    - tắt [quạt hơi nước](device_name)
+    - tắt [điều hòa phòng ngủ](device_name)
+    - tắt [điều hòa phòng khách](device_name)
+    - tắt [máy sưởi phòng ngủ](device_name)
+    - tắt [máy sưởi phòng tắm](device_name)
+    - tắt [tivi phòng khách](device_name)
+    - tắt [tivi phòng ngủ](device_name)
+    - tắt [loa phòng khách](device_name)
+    - tắt [loa phòng ngủ](device_name)
+    - tắt [đèn phòng ngủ](device_name) đi
+    - tắt [đèn phòng khách](device_name) đi
+    - tắt [đèn nhà bếp](device_name) đi
+    - tắt [đèn hành lang](device_name) đi
+    - tắt [đèn phòng tắm](device_name) đi
+    - tắt [đèn ban công](device_name) đi
+    - tắt [đèn sân vườn](device_name) đi
+    - tắt [đèn gara](device_name) đi
+    - tắt [quạt trần](device_name) đi
+    - tắt [quạt bàn](device_name) đi
+    - tắt [quạt hơi nước](device_name) đi
+    - tắt [điều hòa phòng ngủ](device_name) đi
+    - tắt [điều hòa phòng khách](device_name) đi
+    - tắt [máy sưởi phòng ngủ](device_name) đi
+    - tắt [máy sưởi phòng tắm](device_name) đi
+    - tắt [tivi phòng khách](device_name) đi
+    - tắt [tivi phòng ngủ](device_name) đi
+    - tắt [loa phòng khách](device_name) đi
+    - tắt [loa phòng ngủ](device_name) đi
+    - tắt [đèn phòng ngủ](device_name) ngay
+    - tắt [đèn phòng khách](device_name) ngay
+    - tắt [đèn nhà bếp](device_name) ngay
+    - tắt [đèn hành lang](device_name) ngay
+    - tắt [đèn phòng tắm](device_name) ngay
+    - tắt [đèn ban công](device_name) ngay
+    - tắt [đèn sân vườn](device_name) ngay
+    - tắt [đèn gara](device_name) ngay
+    - tắt [quạt trần](device_name) ngay
+    - tắt [quạt bàn](device_name) ngay
+    - tắt [quạt hơi nước](device_name) ngay
+    - tắt [điều hòa phòng ngủ](device_name) ngay
+    - tắt [điều hòa phòng khách](device_name) ngay
+    - tắt [máy sưởi phòng ngủ](device_name) ngay
+    - tắt [máy sưởi phòng tắm](device_name) ngay
+    - tắt [tivi phòng khách](device_name) ngay
+    - tắt [tivi phòng ngủ](device_name) ngay
+    - tắt [loa phòng khách](device_name) ngay
+    - tắt [loa phòng ngủ](device_name) ngay
 
 - intent: check_device_status
   examples: |
@@ -48,33 +141,331 @@ nlu:
     - [điều hòa](device_name) có đang chạy không
     - kiểm tra xem [máy sưởi](device_name) có đang hoạt động không
     - [tivi](device_name) đang bật hay tắt
+    - [đèn phòng ngủ](device_name) có đang bật không
+    - [đèn phòng khách](device_name) có đang bật không
+    - [đèn nhà bếp](device_name) có đang bật không
+    - [đèn hành lang](device_name) có đang bật không
+    - [đèn phòng tắm](device_name) có đang bật không
+    - [quạt trần](device_name) có đang chạy không
+    - [quạt bàn](device_name) có đang chạy không
+    - [điều hòa phòng ngủ](device_name) có đang chạy không
+    - [điều hòa phòng khách](device_name) có đang chạy không
+    - [máy sưởi phòng ngủ](device_name) có đang hoạt động không
+    - [tivi phòng khách](device_name) đang bật hay tắt
+    - [tivi phòng ngủ](device_name) đang bật hay tắt
+    - [loa phòng khách](device_name) có đang bật không
+    - [loa phòng ngủ](device_name) có đang bật không
 
 - intent: set_device_temperature
   examples: |
     - đặt [điều hòa](device_name) ở [25](temperature) độ
     - điều chỉnh [máy sưởi](device_name) lên [22](temperature) độ
+    - đặt [điều hòa phòng ngủ](device_name) ở [26](temperature) độ
+    - đặt [điều hòa phòng khách](device_name) ở [24](temperature) độ
+    - điều chỉnh [máy sưởi phòng ngủ](device_name) lên [28](temperature) độ
+    - điều chỉnh [máy sưởi phòng tắm](device_name) lên [30](temperature) độ
+    - giảm nhiệt độ [điều hòa phòng ngủ](device_name) xuống [23](temperature) độ
+    - tăng nhiệt độ [điều hòa phòng khách](device_name) lên [27](temperature) độ
+    - đặt [điều hòa](device_name) ở nhiệt độ [25](temperature)
+    - điều chỉnh [máy sưởi](device_name) lên nhiệt độ [22](temperature)
 
 - intent: set_device_brightness
   examples: |
     - đặt độ sáng [đèn](device_name) ở [80](brightness) phần trăm
     - điều chỉnh [đèn](device_name) xuống [50](brightness) phần trăm
+    - đặt độ sáng [đèn phòng ngủ](device_name) ở [70](brightness) phần trăm
+    - đặt độ sáng [đèn phòng khách](device_name) ở [90](brightness) phần trăm
+    - đặt độ sáng [đèn nhà bếp](device_name) ở [100](brightness) phần trăm
+    - đặt độ sáng [đèn hành lang](device_name) ở [60](brightness) phần trăm
+    - đặt độ sáng [đèn phòng tắm](device_name) ở [80](brightness) phần trăm
+    - đặt độ sáng [đèn ban công](device_name) ở [40](brightness) phần trăm
+    - giảm độ sáng [đèn phòng ngủ](device_name) xuống [30](brightness) phần trăm
+    - tăng độ sáng [đèn phòng khách](device_name) lên [100](brightness) phần trăm
 
 - intent: set_volume
   examples: |
     - tăng âm lượng [loa](device_name) lên [50](volume)
     - giảm âm lượng [loa](device_name) xuống [30](volume)
+    - đặt âm lượng [loa phòng khách](device_name) ở [70](volume)
+    - đặt âm lượng [loa phòng ngủ](device_name) ở [40](volume)
+    - tăng âm lượng [loa phòng khách](device_name) lên [80](volume)
+    - giảm âm lượng [loa phòng ngủ](device_name) xuống [20](volume)
+    - đặt âm lượng [tivi phòng khách](device_name) ở [60](volume)
+    - đặt âm lượng [tivi phòng ngủ](device_name) ở [50](volume)
+    - tăng âm lượng [tivi phòng khách](device_name) lên [75](volume)
+    - giảm âm lượng [tivi phòng ngủ](device_name) xuống [25](volume)
 
 - intent: set_fan_speed
   examples: |
     - chỉnh tốc độ [quạt](device_name) sang [auto](speed)
     - tăng tốc độ [quạt](device_name) lên [max](speed)
+    - đặt tốc độ [quạt trần](device_name) ở [3](speed)
+    - đặt tốc độ [quạt bàn](device_name) ở [2](speed)
+    - tăng tốc độ [quạt trần](device_name) lên [max](speed)
+    - giảm tốc độ [quạt bàn](device_name) xuống [1](speed)
+    - chỉnh [quạt trần](device_name) sang chế độ [auto](speed)
+    - chỉnh [quạt bàn](device_name) sang chế độ [sleep](speed)
+    - đặt [quạt hơi nước](device_name) ở tốc độ [medium](speed)
+    - tăng tốc độ [quạt hơi nước](device_name) lên [high](speed)
 
 - intent: lock_door
   examples: |
     - khóa [cửa chính](device_name)
     - đóng [cửa ra vào](device_name)
+    - khóa [cửa phòng ngủ](device_name)
+    - khóa [cửa phòng tắm](device_name)
+    - khóa [cửa nhà bếp](device_name)
+    - khóa [cửa ban công](device_name)
+    - khóa [cửa gara](device_name)
+    - đóng [cửa phòng ngủ](device_name)
+    - đóng [cửa phòng tắm](device_name)
+    - đóng [cửa nhà bếp](device_name)
 
 - intent: unlock_door
   examples: |
     - mở khóa [cửa chính](device_name)
     - mở [cửa ra vào](device_name)
+    - mở khóa [cửa phòng ngủ](device_name)
+    - mở khóa [cửa phòng tắm](device_name)
+    - mở khóa [cửa nhà bếp](device_name)
+    - mở khóa [cửa ban công](device_name)
+    - mở khóa [cửa gara](device_name)
+    - mở [cửa phòng ngủ](device_name)
+    - mở [cửa phòng tắm](device_name)
+    - mở [cửa nhà bếp](device_name)
+
+- lookup: device_name
+  examples: |
+    - đèn
+    - đèn phòng ngủ
+    - đèn phòng khách
+    - đèn nhà bếp
+    - đèn hành lang
+    - đèn phòng tắm
+    - đèn ban công
+    - đèn sân vườn
+    - đèn gara
+    - quạt
+    - quạt trần
+    - quạt bàn
+    - quạt hơi nước
+    - điều hòa
+    - điều hòa phòng ngủ
+    - điều hòa phòng khách
+    - máy sưởi
+    - máy sưởi phòng ngủ
+    - máy sưởi phòng tắm
+    - tivi
+    - tivi phòng khách
+    - tivi phòng ngủ
+    - loa
+    - loa phòng khách
+    - loa phòng ngủ
+    - cửa
+    - cửa chính
+    - cửa ra vào
+    - cửa phòng ngủ
+    - cửa phòng tắm
+    - cửa nhà bếp
+    - cửa ban công
+    - cửa gara
+
+- lookup: speed
+  examples: |
+    - auto
+    - sleep
+    - low
+    - medium
+    - high
+    - max
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+
+- lookup: temperature
+  examples: |
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
+    - 24
+    - 25
+    - 26
+    - 27
+    - 28
+    - 29
+    - 30
+
+- lookup: brightness
+  examples: |
+    - 10
+    - 20
+    - 30
+    - 40
+    - 50
+    - 60
+    - 70
+    - 80
+    - 90
+    - 100
+
+- lookup: volume
+  examples: |
+    - 0
+    - 10
+    - 20
+    - 30
+    - 40
+    - 50
+    - 60
+    - 70
+    - 80
+    - 90
+    - 100
+
+- synonym: device_name
+  examples: |
+    - đèn
+    - bóng đèn
+    - đèn điện
+    - bóng điện
+    - đèn led
+    - đèn phòng ngủ
+    - đèn ngủ
+    - đèn phòng khách
+    - đèn khách
+    - đèn phòng bếp
+    - đèn bếp
+    - đèn nhà tắm
+    - đèn toilet
+    - đèn hành lang
+    - đèn sân
+    - đèn ngoài trời
+    - đèn sân vườn
+    - điều hòa
+    - máy lạnh
+    - điều hòa phòng ngủ
+    - máy lạnh phòng ngủ
+    - điều hòa phòng khách
+    - máy lạnh phòng khách
+    - quạt
+    - quạt trần
+    - quạt phòng ngủ
+    - quạt phòng khách
+    - quạt bàn
+    - quạt đứng
+    - quạt hơi nước
+    - tivi
+    - ti vi
+    - tivi phòng khách
+    - ti vi phòng khách
+    - loa
+    - loa bluetooth
+    - loa thông minh
+    - loa phòng khách
+    - loa phòng ngủ
+    - rèm
+    - rèm cửa
+    - rèm phòng ngủ
+    - rèm phòng khách
+    - cửa
+    - cửa chính
+    - cửa ra vào
+    - cửa phòng ngủ
+    - cửa phòng khách
+    - cửa phòng bếp
+    - cửa nhà tắm
+    - cửa toilet
+
+- synonym: temperature
+  examples: |
+    - 16 độ
+    - 17 độ
+    - 18 độ
+    - 19 độ
+    - 20 độ
+    - 21 độ
+    - 22 độ
+    - 23 độ
+    - 24 độ
+    - 25 độ
+    - 26 độ
+    - 27 độ
+    - 28 độ
+    - 29 độ
+    - 30 độ
+    - 16°C
+    - 17°C
+    - 18°C
+    - 19°C
+    - 20°C
+    - 21°C
+    - 22°C
+    - 23°C
+    - 24°C
+    - 25°C
+    - 26°C
+    - 27°C
+    - 28°C
+    - 29°C
+    - 30°C
+
+- synonym: brightness
+  examples: |
+    - 10%
+    - 20%
+    - 30%
+    - 40%
+    - 50%
+    - 60%
+    - 70%
+    - 80%
+    - 90%
+    - 100%
+    - tối
+    - mờ
+    - vừa
+    - sáng
+    - rất sáng
+    - tối nhất
+    - sáng nhất
+
+- synonym: volume
+  examples: |
+    - 0%
+    - 10%
+    - 20%
+    - 30%
+    - 40%
+    - 50%
+    - 60%
+    - 70%
+    - 80%
+    - 90%
+    - 100%
+    - im lặng
+    - nhỏ
+    - vừa
+    - to
+    - rất to
+    - nhỏ nhất
+    - to nhất
+
+- synonym: speed
+  examples: |
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - chậm
+    - vừa
+    - nhanh
+    - chậm nhất
+    - nhanh nhất

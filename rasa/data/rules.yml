@@ -1,0 +1,57 @@
+version: "3.1"
+
+rules:
+- rule: Turn on device
+  steps:
+  - intent: turn_on_device
+  - action: action_turn_on_device
+
+- rule: Turn off device
+  steps:
+  - intent: turn_off_device
+  - action: action_turn_off_device
+
+- rule: Set temperature
+  steps:
+  - intent: set_device_temperature
+  - action: action_set_temperature
+
+- rule: Set brightness
+  steps:
+  - intent: set_device_brightness
+  - action: action_set_brightness
+
+- rule: Set volume
+  steps:
+  - intent: set_volume
+  - action: action_set_volume
+
+- rule: Set fan speed
+  steps:
+  - intent: set_fan_speed
+  - action: action_set_fan_speed
+
+- rule: Lock door
+  steps:
+  - intent: lock_door
+  - action: action_lock_door
+
+- rule: Unlock door
+  steps:
+  - intent: unlock_door
+  - action: action_unlock_door
+
+- rule: Check device status
+  steps:
+  - intent: check_device_status
+  - action: action_check_device_status
+
+- rule: Say goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot'
+  steps:
+  - intent: greet
+  - action: utter_greet 

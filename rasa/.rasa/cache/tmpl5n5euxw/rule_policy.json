@@ -1,0 +1,36 @@
+{
+  "lookup": {
+    "rules": {
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}]": "utter_goodbye",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}, {\"prev_action\": {\"action_name\": \"utter_goodbye\"}, \"user\": {\"intent\": \"goodbye\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_device_temperature\"}}]": "action_set_temperature",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_device_temperature\"}}, {\"prev_action\": {\"action_name\": \"action_set_temperature\"}, \"user\": {\"intent\": \"set_device_temperature\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"unlock_door\"}}]": "action_unlock_door",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"unlock_door\"}}, {\"prev_action\": {\"action_name\": \"action_unlock_door\"}, \"user\": {\"intent\": \"unlock_door\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"turn_off_device\"}}]": "action_turn_off_device",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"turn_off_device\"}}, {\"prev_action\": {\"action_name\": \"action_turn_off_device\"}, \"user\": {\"intent\": \"turn_off_device\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_device_brightness\"}}]": "action_set_brightness",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_device_brightness\"}}, {\"prev_action\": {\"action_name\": \"action_set_brightness\"}, \"user\": {\"intent\": \"set_device_brightness\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_fan_speed\"}}]": "action_set_fan_speed",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_fan_speed\"}}, {\"prev_action\": {\"action_name\": \"action_set_fan_speed\"}, \"user\": {\"intent\": \"set_fan_speed\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_volume\"}}]": "action_set_volume",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"set_volume\"}}, {\"prev_action\": {\"action_name\": \"action_set_volume\"}, \"user\": {\"intent\": \"set_volume\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}]": "utter_greet",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}, {\"prev_action\": {\"action_name\": \"utter_greet\"}, \"user\": {\"intent\": \"greet\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"lock_door\"}}]": "action_lock_door",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"lock_door\"}}, {\"prev_action\": {\"action_name\": \"action_lock_door\"}, \"user\": {\"intent\": \"lock_door\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"turn_on_device\"}}]": "action_turn_on_device",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"turn_on_device\"}}, {\"prev_action\": {\"action_name\": \"action_turn_on_device\"}, \"user\": {\"intent\": \"turn_on_device\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"check_device_status\"}}]": "action_check_device_status",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"check_device_status\"}}, {\"prev_action\": {\"action_name\": \"action_check_device_status\"}, \"user\": {\"intent\": \"check_device_status\"}}]": "action_listen"
+    },
+    "rule_only_slots": [],
+    "rule_only_loops": [],
+    "rules_for_loop_unhappy_path": {},
+    "rules_not_in_stories": [
+      "predicting default action with intent back",
+      "predicting default action with intent session_start",
+      "predicting default action with intent restart"
+    ]
+  }
+}

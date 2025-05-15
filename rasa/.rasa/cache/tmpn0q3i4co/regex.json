@@ -1,0 +1,22 @@
+[
+  {
+    "name": "device_name",
+    "pattern": "(\\bđèn\\b|\\bđèn\\ phòng\\ ngủ\\b|\\bđèn\\ phòng\\ khách\\b|\\bđèn\\ nhà\\ bếp\\b|\\bđèn\\ hành\\ lang\\b|\\bđèn\\ phòng\\ tắm\\b|\\bđèn\\ ban\\ công\\b|\\bđèn\\ sân\\ vườn\\b|\\bđèn\\ gara\\b|\\bquạt\\b|\\bquạt\\ trần\\b|\\bquạt\\ bàn\\b|\\bquạt\\ hơi\\ nước\\b|\\bđiều\\ hòa\\b|\\bđiều\\ hòa\\ phòng\\ ngủ\\b|\\bđiều\\ hòa\\ phòng\\ khách\\b|\\bmáy\\ sưởi\\b|\\bmáy\\ sưởi\\ phòng\\ ngủ\\b|\\bmáy\\ sưởi\\ phòng\\ tắm\\b|\\btivi\\b|\\btivi\\ phòng\\ khách\\b|\\btivi\\ phòng\\ ngủ\\b|\\bloa\\b|\\bloa\\ phòng\\ khách\\b|\\bloa\\ phòng\\ ngủ\\b|\\bcửa\\b|\\bcửa\\ chính\\b|\\bcửa\\ ra\\ vào\\b|\\bcửa\\ phòng\\ ngủ\\b|\\bcửa\\ phòng\\ tắm\\b|\\bcửa\\ nhà\\ bếp\\b|\\bcửa\\ ban\\ công\\b|\\bcửa\\ gara\\b)"
+  },
+  {
+    "name": "speed",
+    "pattern": "(\\bauto\\b|\\bsleep\\b|\\blow\\b|\\bmedium\\b|\\bhigh\\b|\\bmax\\b|\\b1\\b|\\b2\\b|\\b3\\b|\\b4\\b|\\b5\\b)"
+  },
+  {
+    "name": "temperature",
+    "pattern": "(\\b16\\b|\\b17\\b|\\b18\\b|\\b19\\b|\\b20\\b|\\b21\\b|\\b22\\b|\\b23\\b|\\b24\\b|\\b25\\b|\\b26\\b|\\b27\\b|\\b28\\b|\\b29\\b|\\b30\\b)"
+  },
+  {
+    "name": "brightness",
+    "pattern": "(\\b10\\b|\\b20\\b|\\b30\\b|\\b40\\b|\\b50\\b|\\b60\\b|\\b70\\b|\\b80\\b|\\b90\\b|\\b100\\b)"
+  },
+  {
+    "name": "volume",
+    "pattern": "(\\b0\\b|\\b10\\b|\\b20\\b|\\b30\\b|\\b40\\b|\\b50\\b|\\b60\\b|\\b70\\b|\\b80\\b|\\b90\\b|\\b100\\b)"
+  }
+]

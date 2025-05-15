@@ -47,6 +47,7 @@ services:
       - rasa_models:/app/models
       - rasa_pip_cache:/root/.cache/pip
       - ./rasa:/app
+      - ./rasa/models:/app/models
     command: run --enable-api --cors "*" --endpoints /app/endpoints.yml
     networks:
       - iot-network
