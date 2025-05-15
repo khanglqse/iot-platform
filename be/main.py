@@ -77,7 +77,7 @@ async def execute_device_action(device_id: str, action: str, value: Any = None):
     
     # Lưu trạng thái vào MongoDB
     device_status = {
-        "device_id": device_id,
+        "id": device_id,
         "action": action,
         "value": value,
         "timestamp": datetime.datetime.now()
@@ -90,19 +90,31 @@ async def create_fan(fan: Fan):
     result = db.devices.insert_one(fan.dict())
     return {**fan.dict(), "id": str(result.inserted_id)}
 
-@app.put("/devices/fan/{fan_id}/speed")
-async def set_fan_speed(fan_id: str, speed: int):
+@app.put("/devices/fan/{device_id}/speed")
+async def set_fan_speed(device_id: str, speed: int):
     if not 0 <= speed <= 3:
         raise HTTPException(status_code=400, detail="Speed must be between 0 and 3")
-    await execute_device_action(fan_id, "set_speed", speed)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "speed": speed
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
-@app.put("/devices/fan/{fan_id}/mode")
-async def set_fan_mode(fan_id: str, mode: str):
-    if mode not in ["normal", "natural", "sleep"]:
+@app.put("/devices/fan/{device_id}/mode")
+async def set_fan_mode(device_id: str, mode: str):
+    if mode not in ["normal", "sleep", "turbo"]:
         raise HTTPException(status_code=400, detail="Invalid mode")
-    await execute_device_action(fan_id, "set_mode", mode)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "mode": mode
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
 # Air Conditioner endpoints
 @app.post("/devices/ac", response_model=AirConditioner)
@@ -110,19 +122,31 @@ async def create_ac(ac: AirConditioner):
     result = db.devices.insert_one(ac.dict())
     return {**ac.dict(), "id": str(result.inserted_id)}
 
-@app.put("/devices/ac/{ac_id}/temperature")
-async def set_ac_temperature(ac_id: str, temperature: float):
+@app.put("/devices/ac/{device_id}/temperature")
+async def set_ac_temperature(device_id: str, temperature: int):
     if not 16 <= temperature <= 30:
         raise HTTPException(status_code=400, detail="Temperature must be between 16 and 30")
-    await execute_device_action(ac_id, "set_temperature", temperature)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "temperature": temperature
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
-@app.put("/devices/ac/{ac_id}/mode")
-async def set_ac_mode(ac_id: str, mode: str):
-    if mode not in ["cool", "heat", "fan", "dry", "auto"]:
+@app.put("/devices/ac/{device_id}/mode")
+async def set_ac_mode(device_id: str, mode: str):
+    if mode not in ["cool", "heat", "fan", "dry"]:
         raise HTTPException(status_code=400, detail="Invalid mode")
-    await execute_device_action(ac_id, "set_mode", mode)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "mode": mode
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
 # Speaker endpoints
 @app.post("/devices/speaker", response_model=Speaker)
@@ -130,19 +154,31 @@ async def create_speaker(speaker: Speaker):
     result = db.devices.insert_one(speaker.dict())
     return {**speaker.dict(), "id": str(result.inserted_id)}
 
-@app.put("/devices/speaker/{speaker_id}/volume")
-async def set_speaker_volume(speaker_id: str, volume: int):
+@app.put("/devices/speaker/{device_id}/volume")
+async def set_speaker_volume(device_id: str, volume: int):
     if not 0 <= volume <= 100:
         raise HTTPException(status_code=400, detail="Volume must be between 0 and 100")
-    await execute_device_action(speaker_id, "set_volume", volume)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "volume": volume
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
-@app.put("/devices/speaker/{speaker_id}/play")
-async def control_speaker_playback(speaker_id: str, action: str):
-    if action not in ["play", "pause", "stop"]:
+@app.put("/devices/speaker/{device_id}/play")
+async def control_speaker_playback(device_id: str, action: str):
+    if action not in ["play", "pause", "next", "previous"]:
         raise HTTPException(status_code=400, detail="Invalid action")
-    await execute_device_action(speaker_id, action)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "playback_action": action
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
 # Light endpoints
 @app.post("/devices/light", response_model=Light)
@@ -150,17 +186,28 @@ async def create_light(light: Light):
     result = db.devices.insert_one(light.dict())
     return {**light.dict(), "id": str(result.inserted_id)}
 
-@app.put("/devices/light/{light_id}/brightness")
-async def set_light_brightness(light_id: str, brightness: int):
+@app.put("/devices/light/{device_id}/brightness")
+async def set_light_brightness(device_id: str, brightness: int):
     if not 0 <= brightness <= 100:
         raise HTTPException(status_code=400, detail="Brightness must be between 0 and 100")
-    await execute_device_action(light_id, "set_brightness", brightness)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "brightness": brightness
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
-@app.put("/devices/light/{light_id}/color")
-async def set_light_color(light_id: str, color: str):
-    await execute_device_action(light_id, "set_color", color)
-    return {"status": "success"}
+@app.put("/devices/light/{device_id}/color")
+async def set_light_color(device_id: str, color: str):
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "color": color
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
 # Door endpoints
 @app.post("/devices/door", response_model=Door)
@@ -168,32 +215,93 @@ async def create_door(door: Door):
     result = db.devices.insert_one(door.dict())
     return {**door.dict(), "id": str(result.inserted_id)}
 
-@app.put("/devices/door/{door_id}/lock")
-async def control_door_lock(door_id: str, action: str):
+@app.put("/devices/door/{device_id}/lock")
+async def control_door_lock(device_id: str, action: str):
     if action not in ["lock", "unlock"]:
         raise HTTPException(status_code=400, detail="Invalid action")
-    await execute_device_action(door_id, action)
-    return {"status": "success"}
+    
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "lock_action": action
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
-@app.put("/devices/door/{door_id}/auto-lock")
-async def set_door_auto_lock(door_id: str, enabled: bool):
-    await execute_device_action(door_id, "set_auto_lock", enabled)
-    return {"status": "success"}
+@app.put("/devices/door/{device_id}/auto-lock")
+async def set_door_auto_lock(device_id: str, enabled: bool):
+    status_update = {
+        "id": device_id,
+        "timestamp": datetime.datetime.now(),
+        "auto_lock": enabled
+    }
+    db.device_status.insert_one(status_update)
+    return status_update
 
 # Common endpoints
 @app.get("/devices", response_model=List[Dict[str, Any]])
 async def get_all_devices():
-    devices = list(db.devices.find({}, {"_id": 0}))
+    devices = list(db.device_status.find({}, {"_id": 0}))
     return devices
 
 @app.get("/devices/{device_id}/status")
 async def get_device_status(device_id: str):
     status = db.device_status.find_one(
-        {"device_id": device_id},
+        {"id": device_id},
         sort=[("timestamp", -1)],
         projection={"_id": 0}
     )
     return status if status else {"status": "not_found"}
+
+@app.patch("/devices/{device_id}/status")
+async def update_device_status(device_id: str, updates: dict):
+    # Create timestamp
+    current_time = datetime.datetime.utcnow()
+    
+    # Create status update
+    status_update = {
+        "id": device_id,
+        "timestamp": current_time,
+        **updates
+    }
+    
+    # Update existing record in device_status collection
+    db.device_status.update_one(
+        {"id": device_id},
+        {"$set": status_update},
+        upsert=True
+    )
+    
+    # Create and insert log entry
+    log_entry = {
+        "device_id": device_id,
+        "timestamp": current_time,
+        "action": "status_update",
+        "details": updates
+    }
+    db.device_logs.insert_one(log_entry)
+    
+    # Update device details if needed
+    if "name" in updates or "location" in updates:
+        db.devices.update_one(
+            {"id": device_id},
+            {"$set": updates}
+        )
+    
+    # Send MQTT message to control device
+    topic = f"iot/devices/{device_id}"
+    message = json.dumps(updates)
+    mqtt_client.publish(topic, message)
+    
+    return status_update
+
+@app.get("/devices/{device_id}")
+async def get_device_details(device_id: str):
+    device = db.devices.find_one(
+        {"id": device_id},
+        projection={"_id": 0}
+    )
+    return device if device else {"status": "not_found"}
 
 @app.post("/voice-command")
 async def process_voice_command(file: UploadFile = File(...)):

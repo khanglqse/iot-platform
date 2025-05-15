@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Device, Fan, AirConditioner, Speaker, Light, Door } from '../types/devices';
+import { Device, FanDevice, ACDevice, SpeakerDevice, LightDevice, DoorDevice } from '../types/devices';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -10,7 +10,7 @@ export const getAllDevices = async (): Promise<Device[]> => {
 };
 
 // Fan APIs
-export const createFan = async (fan: Fan): Promise<Fan> => {
+export const createFan = async (fan: FanDevice): Promise<FanDevice> => {
   const response = await axios.post(`${API_BASE_URL}/devices/fan`, fan);
   return response.data;
 };
@@ -24,7 +24,7 @@ export const setFanMode = async (fanId: string, mode: string): Promise<void> => 
 };
 
 // Air Conditioner APIs
-export const createAC = async (ac: AirConditioner): Promise<AirConditioner> => {
+export const createAC = async (ac: ACDevice): Promise<ACDevice> => {
   const response = await axios.post(`${API_BASE_URL}/devices/ac`, ac);
   return response.data;
 };
@@ -38,7 +38,7 @@ export const setACMode = async (acId: string, mode: string): Promise<void> => {
 };
 
 // Speaker APIs
-export const createSpeaker = async (speaker: Speaker): Promise<Speaker> => {
+export const createSpeaker = async (speaker: SpeakerDevice): Promise<SpeakerDevice> => {
   const response = await axios.post(`${API_BASE_URL}/devices/speaker`, speaker);
   return response.data;
 };
@@ -52,7 +52,7 @@ export const controlSpeakerPlayback = async (speakerId: string, action: string):
 };
 
 // Light APIs
-export const createLight = async (light: Light): Promise<Light> => {
+export const createLight = async (light: LightDevice): Promise<LightDevice> => {
   const response = await axios.post(`${API_BASE_URL}/devices/light`, light);
   return response.data;
 };
@@ -66,7 +66,7 @@ export const setLightColor = async (lightId: string, color: string): Promise<voi
 };
 
 // Door APIs
-export const createDoor = async (door: Door): Promise<Door> => {
+export const createDoor = async (door: DoorDevice): Promise<DoorDevice> => {
   const response = await axios.post(`${API_BASE_URL}/devices/door`, door);
   return response.data;
 };
@@ -80,7 +80,12 @@ export const setDoorAutoLock = async (doorId: string, enabled: boolean): Promise
 };
 
 // Get device status
-export const getDeviceStatus = async (deviceId: string): Promise<any> => {
+export const getDeviceStatus = async (deviceId: string): Promise<Device> => {
   const response = await axios.get(`${API_BASE_URL}/devices/${deviceId}/status`);
+  return response.data;
+};
+
+export const updateDeviceStatus = async (deviceId: string, updates: Partial<Device>): Promise<Device> => {
+  const response = await axios.patch(`${API_BASE_URL}/devices/${deviceId}/status`, updates);
   return response.data;
 }; 

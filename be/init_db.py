@@ -44,7 +44,8 @@ mock_devices = [
         'location': 'Cửa ra vào',
         'lastSeen': datetime.now().isoformat(),
         'isLocked': True,
-        'isOpen': False
+        'autoLock': True,
+        'isOn': True
     },
     {
         'id': '4',
@@ -55,7 +56,8 @@ mock_devices = [
         'lastSeen': datetime.now().isoformat(),
         'volume': 50,
         'isPlaying': False,
-        'currentTrack': 'Chưa phát nhạc'
+        'currentTrack': 'Chưa phát nhạc',
+        'isOn': True
     },
     {
         'id': '5',
@@ -66,7 +68,7 @@ mock_devices = [
         'lastSeen': datetime.fromtimestamp(datetime.now().timestamp() - 3600).isoformat(),
         'temperature': 26,
         'mode': 'heat',
-        'fanSpeed': 'medium',
+        'fanSpeed': 2,
         'isOn': False
     },
     {
@@ -88,7 +90,8 @@ mock_devices = [
         'location': 'Cửa sau',
         'lastSeen': datetime.now().isoformat(),
         'isLocked': False,
-        'isOpen': True
+        'autoLock': False,
+        'isOn': True
     },
     {
         'id': '8',
@@ -98,7 +101,30 @@ mock_devices = [
         'location': 'Phòng ngủ',
         'lastSeen': datetime.fromtimestamp(datetime.now().timestamp() - 7200).isoformat(),
         'volume': 30,
-        'isPlaying': False
+        'isPlaying': False,
+        'isOn': False
+    },
+    {
+        'id': '9',
+        'name': 'Quạt trần phòng khách',
+        'type': 'FAN',
+        'status': 'online',
+        'location': 'Phòng khách',
+        'lastSeen': datetime.now().isoformat(),
+        'speed': 'auto',
+        'mode': 'normal',
+        'isOn': True
+    },
+    {
+        'id': '10',
+        'name': 'Quạt đứng phòng ngủ',
+        'type': 'FAN',
+        'status': 'online',
+        'location': 'Phòng ngủ',
+        'lastSeen': datetime.now().isoformat(),
+        'speed': 2,
+        'mode': 'sleep',
+        'isOn': True
     }
 ]
 

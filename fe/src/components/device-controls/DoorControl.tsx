@@ -15,8 +15,8 @@ const DoorControl: React.FC<DoorControlProps> = ({ device, onUpdate }) => {
     onUpdate({ isLocked });
   };
 
-  const handleDoorChange = (isOpen: boolean) => {
-    onUpdate({ isOpen });
+  const handleDoorChange = (isLocked: boolean) => {
+    onUpdate({ isLocked });
   };
 
   return (
@@ -30,7 +30,7 @@ const DoorControl: React.FC<DoorControlProps> = ({ device, onUpdate }) => {
             <span>Trạng thái cửa</span>
           </Space>
           <Switch
-            checked={device.isOpen}
+            checked={device.isLocked}
             onChange={handleDoorChange}
             checkedChildren="Mở"
             unCheckedChildren="Đóng"

@@ -1,129 +1,102 @@
-import React, { useState } from 'react';
-import { Table, Card, Tag, Space, Typography, Layout } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Device, DeviceType } from '../types/devices';
+import { getAllDevices } from '../services/deviceService';
 import { useNavigate } from 'react-router-dom';
-import { Device } from '../types/devices';
+import { Table, Card, Tag, Space, Typography, Layout, Spin, Alert } from 'antd';
+import {
+  DesktopOutlined,
+  BulbOutlined,
+  SoundOutlined,
+  LockOutlined,
+  ApiOutlined,
+  PoweroffOutlined
+} from '@ant-design/icons';
 
 const { Title } = Typography;
-const { Header, Content } = Layout;
+const { Content } = Layout;
 
 const DeviceManagement: React.FC = () => {
   const navigate = useNavigate();
-  const [loading] = useState(false);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data
-  const mockDevices: Device[] = [
-    {
-      id: '1',
-      name: 'Điều hòa phòng khách',
-      type: 'AC',
-      status: 'online',
-      location: 'Phòng khách',
-      lastSeen: new Date().toISOString(),
-      temperature: 25,
-      mode: 'cool',
-      fanSpeed: 'auto',
-      isOn: true
-    },
-    {
-      id: '2',
-      name: 'Đèn phòng ngủ',
-      type: 'LIGHT',
-      status: 'online',
-      location: 'Phòng ngủ',
-      lastSeen: new Date().toISOString(),
-      brightness: 80,
-      color: '#ffffff',
-      isOn: true
-    },
-    {
-      id: '3',
-      name: 'Cửa chính',
-      type: 'DOOR',
-      status: 'online',
-      location: 'Cửa ra vào',
-      lastSeen: new Date().toISOString(),
-      isLocked: true,
-      isOpen: false
-    },
-    {
-      id: '4',
-      name: 'Loa phòng khách',
-      type: 'SPEAKER',
-      status: 'online',
-      location: 'Phòng khách',
-      lastSeen: new Date().toISOString(),
-      volume: 50,
-      isPlaying: false,
-      currentTrack: 'Chưa phát nhạc'
-    },
-    {
-      id: '5',
-      name: 'Điều hòa phòng ngủ',
-      type: 'AC',
-      status: 'offline',
-      location: 'Phòng ngủ',
-      lastSeen: new Date(Date.now() - 3600000).toISOString(),
-      temperature: 26,
-      mode: 'heat',
-      fanSpeed: 'medium',
-      isOn: false
-    },
-    {
-      id: '6',
-      name: 'Đèn ban công',
-      type: 'LIGHT',
-      status: 'online',
-      location: 'Ban công',
-      lastSeen: new Date().toISOString(),
-      brightness: 100,
-      color: '#ffeb3b',
-      isOn: true
-    },
-    {
-      id: '7',
-      name: 'Cửa sau',
-      type: 'DOOR',
-      status: 'online',
-      location: 'Cửa sau',
-      lastSeen: new Date().toISOString(),
-      isLocked: false,
-      isOpen: true
-    },
-    {
-      id: '8',
-      name: 'Loa phòng ngủ',
-      type: 'SPEAKER',
-      status: 'offline',
-      location: 'Phòng ngủ',
-      lastSeen: new Date(Date.now() - 7200000).toISOString(),
-      volume: 30,
-      isPlaying: false
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
+  const fetchDevices = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllDevices();
+      setDevices(data);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch devices');
+      console.error('Error fetching devices:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const getDeviceIcon = (type: DeviceType) => {
+    switch (type) {
+      case 'AC':
+        return <DesktopOutlined />;
+      case 'LIGHT':
+        return <BulbOutlined />;
+      case 'SPEAKER':
+        return <SoundOutlined />;
+      case 'DOOR':
+        return <LockOutlined />;
+      case 'FAN':
+        return <ApiOutlined />;
+      default:
+        return null;
+    }
+  };
+
+  const getDeviceStatus = (device: Device) => {
+    return (
+      <Space>
+        <Tag color={device.isOn ? 'success' : 'default'} icon={<PoweroffOutlined />}>
+          {device.isOn ? 'ON' : 'OFF'}
+        </Tag>
+        <Tag color={device.status === 'online' ? 'success' : 'error'}>
+          {device.status === 'online' ? 'Online' : 'Offline'}
+        </Tag>
+      </Space>
+    );
+  };
+
+  const getDeviceDetails = (device: Device) => {
+    switch (device.type) {
+      case 'FAN':
+        return `Speed: ${device.speed}, Mode: ${device.mode}`;
+      case 'AC':
+        return `Temp: ${device.temperature}°C, Mode: ${device.mode}, Fan: ${device.fanSpeed}`;
+      case 'SPEAKER':
+        return `Volume: ${device.volume}%, ${device.isPlaying ? 'Playing' : 'Stopped'}`;
+      case 'LIGHT':
+        return `Brightness: ${device.brightness}%, Color: ${device.color}`;
+      case 'DOOR':
+        return `${device.isLocked ? 'Locked' : 'Unlocked'}, Auto-lock: ${device.autoLock ? 'ON' : 'OFF'}`;
+      default:
+        return '';
+    }
+  };
 
   const columns = [
     {
-      title: 'Tên thiết bị',
+      title: 'Thiết bị',
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: Device) => (
-        <a onClick={() => navigate(`/devices/${record.id}`)}>{text}</a>
+        <Space>
+          {getDeviceIcon(record.type)}
+          <a onClick={() => navigate(`/devices/${record.id}`)}>{text}</a>
+        </Space>
       ),
-    },
-    {
-      title: 'Loại',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => {
-        const typeNames: { [key: string]: string } = {
-          'AC': 'Điều hòa',
-          'LIGHT': 'Đèn',
-          'DOOR': 'Cửa',
-          'SPEAKER': 'Loa',
-          'TIMER': 'Hẹn giờ'
-        };
-        return typeNames[type] || type;
-      }
     },
     {
       title: 'Vị trí',
@@ -132,13 +105,13 @@ const DeviceManagement: React.FC = () => {
     },
     {
       title: 'Trạng thái',
-      dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'online' ? 'green' : 'red'}>
-          {status === 'online' ? 'Hoạt động' : 'Mất kết nối'}
-        </Tag>
-      ),
+      render: (_: unknown, record: Device) => getDeviceStatus(record),
+    },
+    {
+      title: 'Chi tiết',
+      key: 'details',
+      render: (_: unknown, record: Device) => getDeviceDetails(record),
     },
     {
       title: 'Lần cuối hoạt động',
@@ -148,20 +121,38 @@ const DeviceManagement: React.FC = () => {
     },
   ];
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert
+        message="Error"
+        description={error}
+        type="error"
+        showIcon
+      />
+    );
+  }
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-        
-        <Content>
-        <h3>Quản lý thiết bị</h3>
-          <Card>
-            <Table
-              columns={columns}
-              dataSource={mockDevices}
-              loading={loading}
-              rowKey="id"
-            />
-          </Card>
-        </Content>
+      <Content style={{ padding: '24px' }}>
+        <Title level={2}>Quản lý thiết bị</Title>
+        <Card>
+          <Table
+            columns={columns}
+            dataSource={devices}
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+          />
+        </Card>
+      </Content>
     </Layout>
   );
 };

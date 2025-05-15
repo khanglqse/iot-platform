@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Card, Form, TimePicker, Switch, Button, Space, Typography, Select, Table } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { TimerDevice } from '../../types/devices';
+import { Device } from '../../types/devices';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 interface TimerControlProps {
-  device: TimerDevice;
-  onUpdate: (updates: Partial<TimerDevice>) => void;
+  device: Device;
+  onUpdate: (updates: Partial<Device>) => void;
 }
 
 const TimerControl: React.FC<TimerControlProps> = ({ device, onUpdate }) => {
@@ -17,9 +17,8 @@ const TimerControl: React.FC<TimerControlProps> = ({ device, onUpdate }) => {
 
   const handleAddSchedule = (values: any) => {
     const newSchedule = {
-      deviceId: device.id,
-      action: values.action,
       time: values.time.format('HH:mm'),
+      action: values.action,
       days: values.days,
     };
 
@@ -33,6 +32,42 @@ const TimerControl: React.FC<TimerControlProps> = ({ device, onUpdate }) => {
     onUpdate({ schedule: updatedSchedules });
   };
 
+  const getActionOptions = () => {
+    const baseOptions = [
+      { value: 'on', label: 'Bật' },
+      { value: 'off', label: 'Tắt' },
+    ];
+
+    switch (device.type) {
+      case 'AC':
+        return [
+          ...baseOptions,
+          { value: 'set_temperature', label: 'Đặt nhiệt độ' },
+          { value: 'set_mode', label: 'Đặt chế độ' },
+        ];
+      case 'LIGHT':
+        return [
+          ...baseOptions,
+          { value: 'set_brightness', label: 'Đặt độ sáng' },
+          { value: 'set_color', label: 'Đặt màu sắc' },
+        ];
+      case 'SPEAKER':
+        return [
+          ...baseOptions,
+          { value: 'set_volume', label: 'Đặt âm lượng' },
+          { value: 'play', label: 'Phát nhạc' },
+          { value: 'pause', label: 'Tạm dừng' },
+        ];
+      case 'DOOR':
+        return [
+          { value: 'lock', label: 'Khóa' },
+          { value: 'unlock', label: 'Mở khóa' },
+        ];
+      default:
+        return baseOptions;
+    }
+  };
+
   const columns = [
     {
       title: 'Thời gian',
@@ -43,9 +78,10 @@ const TimerControl: React.FC<TimerControlProps> = ({ device, onUpdate }) => {
       title: 'Hành động',
       dataIndex: 'action',
       key: 'action',
-      render: (action: string) => (
-        <span>{action === 'on' ? 'Bật' : 'Tắt'}</span>
-      ),
+      render: (action: string) => {
+        const actionOption = getActionOptions().find(opt => opt.value === action);
+        return <span>{actionOption?.label || action}</span>;
+      },
     },
     {
       title: 'Ngày trong tuần',
@@ -94,8 +130,11 @@ const TimerControl: React.FC<TimerControlProps> = ({ device, onUpdate }) => {
             rules={[{ required: true, message: 'Vui lòng chọn hành động' }]}
           >
             <Select>
-              <Option value="on">Bật</Option>
-              <Option value="off">Tắt</Option>
+              {getActionOptions().map(option => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 

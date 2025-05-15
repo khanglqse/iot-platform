@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Descriptions, Tag, Button, Tabs, Typography, Layout, Space } from 'antd';
+import { Card, Descriptions, Tag, Button, Tabs, Typography, Layout, Space, message, Spin, Alert } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Device, ACDevice, LightDevice, DoorDevice, SpeakerDevice, TimerDevice } from '../types/devices';
+import { Device, ACDevice, LightDevice, DoorDevice, SpeakerDevice } from '../types/devices';
 import ACControl from '../components/device-controls/ACControl';
 import LightControl from '../components/device-controls/LightControl';
 import DoorControl from '../components/device-controls/DoorControl';
 import SpeakerControl from '../components/device-controls/SpeakerControl';
 import TimerControl from '../components/device-controls/TimerControl';
+import { getDeviceStatus, updateDeviceStatus } from '../services/deviceService';
 
 const { Title } = Typography;
 const { Header, Content } = Layout;
@@ -19,162 +20,59 @@ interface DeviceLog {
   details: string;
 }
 
-// Mock data for different device types
-const mockDevices: { [key: string]: Device } = {
-  '1': {
-    id: '1',
-    name: 'Điều hòa phòng khách',
-    type: 'AC',
-    status: 'online',
-    location: 'Phòng khách',
-    lastSeen: new Date().toISOString(),
-    temperature: 25,
-    mode: 'cool',
-    fanSpeed: 'auto',
-    isOn: true
-  },
-  '2': {
-    id: '2',
-    name: 'Đèn phòng ngủ',
-    type: 'LIGHT',
-    status: 'online',
-    location: 'Phòng ngủ',
-    lastSeen: new Date().toISOString(),
-    brightness: 80,
-    color: '#ffffff',
-    isOn: true
-  },
-  '3': {
-    id: '3',
-    name: 'Cửa chính',
-    type: 'DOOR',
-    status: 'online',
-    location: 'Cửa ra vào',
-    lastSeen: new Date().toISOString(),
-    isLocked: true,
-    isOpen: false
-  },
-  '4': {
-    id: '4',
-    name: 'Loa phòng khách',
-    type: 'SPEAKER',
-    status: 'online',
-    location: 'Phòng khách',
-    lastSeen: new Date().toISOString(),
-    volume: 50,
-    isPlaying: false,
-    currentTrack: 'Chưa phát nhạc'
-  },
-  '5': {
-    id: '5',
-    name: 'Điều hòa phòng ngủ',
-    type: 'AC',
-    status: 'offline',
-    location: 'Phòng ngủ',
-    lastSeen: new Date(Date.now() - 3600000).toISOString(),
-    temperature: 26,
-    mode: 'heat',
-    fanSpeed: 'medium',
-    isOn: false
-  },
-  '6': {
-    id: '6',
-    name: 'Đèn ban công',
-    type: 'LIGHT',
-    status: 'online',
-    location: 'Ban công',
-    lastSeen: new Date().toISOString(),
-    brightness: 100,
-    color: '#ffeb3b',
-    isOn: true
-  },
-  '7': {
-    id: '7',
-    name: 'Cửa sau',
-    type: 'DOOR',
-    status: 'online',
-    location: 'Cửa sau',
-    lastSeen: new Date().toISOString(),
-    isLocked: false,
-    isOpen: true
-  },
-  '8': {
-    id: '8',
-    name: 'Loa phòng ngủ',
-    type: 'SPEAKER',
-    status: 'offline',
-    location: 'Phòng ngủ',
-    lastSeen: new Date(Date.now() - 7200000).toISOString(),
-    volume: 30,
-    isPlaying: false
-  }
-};
-
 const DeviceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [device, setDevice] = useState<Device | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<DeviceLog[]>([]);
 
-  useEffect(() => {
-    // TODO: Replace with actual API call
-    const fetchDeviceDetails = async () => {
+  const fetchDeviceDetails = async () => {
+    if (!id) return;
+    
+    try {
       setLoading(true);
-      try {
-        // Get device from mock data
-        const deviceId = id || '1';
-        const mockDevice = mockDevices[deviceId];
-        
-        if (!mockDevice) {
-          throw new Error('Device not found');
-        }
-
-        setDevice(mockDevice);
-
-        // Mock logs based on device type
-        const mockLogs: DeviceLog[] = [
-          {
-            id: '1',
-            timestamp: new Date().toISOString(),
-            action: 'Bật thiết bị',
-            details: 'Thiết bị được bật lúc 10:00'
-          },
-          {
-            id: '2',
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            action: 'Điều chỉnh cài đặt',
-            details: mockDevice.type === 'AC' 
-              ? 'Nhiệt độ được điều chỉnh xuống 25°C'
-              : mockDevice.type === 'LIGHT'
-              ? 'Độ sáng được điều chỉnh lên 80%'
-              : mockDevice.type === 'DOOR'
-              ? 'Cửa được khóa'
-              : 'Âm lượng được điều chỉnh lên 50%'
-          }
-        ];
-        setLogs(mockLogs);
-      } catch (error) {
-        console.error('Error fetching device details:', error);
-      }
+      const deviceData = await getDeviceStatus(id);
+      setDevice(deviceData);
+      setError(null);
+    } catch (err) {
+      setError('Không thể tải thông tin thiết bị');
+      message.error('Không thể tải thông tin thiết bị');
+      console.error('Error fetching device details:', err);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchDeviceDetails();
+    
+    // Set up polling for device status updates
+    const intervalId = setInterval(fetchDeviceDetails, 30000); // Poll every 30 seconds
+    
+    return () => clearInterval(intervalId);
   }, [id]);
 
-  const handleDeviceUpdate = (updates: Partial<Device>) => {
-    if (!device) return;
+  const handleDeviceUpdate = async (updates: Partial<Device>) => {
+    if (!device || !id) return;
     
-    // Preserve the device type when updating
-    const updatedDevice = {
-      ...device,
-      ...updates,
-      type: device.type
-    } as Device;
-    
-    setDevice(updatedDevice);
-    // TODO: Add API call to update device
+    try {
+      await updateDeviceStatus(id, updates);
+      // Merge updates with current device state
+      setDevice(prevDevice => {
+        if (!prevDevice) return null;
+        return {
+          ...prevDevice,
+          ...updates,
+          lastSeen: new Date().toISOString()
+        } as Device;
+      });
+      message.success('Cập nhật thiết bị thành công');
+    } catch (err) {
+      message.error('Không thể cập nhật thiết bị');
+      console.error('Error updating device:', err);
+    }
   };
 
   const renderDeviceControl = () => {
@@ -195,11 +93,43 @@ const DeviceDetail: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert
+        message="Lỗi"
+        description={error}
+        type="error"
+        showIcon
+        action={
+          <Button type="primary" onClick={fetchDeviceDetails}>
+            Thử lại
+          </Button>
+        }
+      />
+    );
   }
 
   if (!device) {
-    return <div>Device not found</div>;
+    return (
+      <Alert
+        message="Không tìm thấy thiết bị"
+        description="Thiết bị bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+        type="warning"
+        showIcon
+        action={
+          <Button type="primary" onClick={() => navigate('/devices')}>
+            Quay lại danh sách thiết bị
+          </Button>
+        }
+      />
+    );
   }
 
   const items = [
@@ -211,11 +141,7 @@ const DeviceDetail: React.FC = () => {
     {
       key: 'timer',
       label: 'Hẹn giờ',
-      children: device.type === 'TIMER' ? (
-        <TimerControl device={device as TimerDevice} onUpdate={handleDeviceUpdate} />
-      ) : (
-        <div>Chức năng hẹn giờ không khả dụng cho loại thiết bị này</div>
-      ),
+      children: <TimerControl device={device} onUpdate={handleDeviceUpdate} />,
     },
     {
       key: 'history',
