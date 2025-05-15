@@ -1,0 +1,42 @@
+version: "3.1"
+
+stories:
+- story: turn on device path
+  steps:
+  - intent: turn_on_device
+  - action: action_turn_on_device
+  - action: utter_confirm_action
+
+- story: turn off device path
+  steps:
+  - intent: turn_off_device
+  - action: action_turn_off_device
+  - action: utter_confirm_action
+
+- story: check device status path
+  steps:
+  - intent: check_device_status
+  - action: action_check_device_status
+  - action: utter_device_status
+
+- story: set temperature path
+  steps:
+  - intent: set_device_temperature
+  - action: action_set_temperature
+  - action: utter_confirm_action
+
+- story: set brightness path
+  steps:
+  - intent: set_device_brightness
+  - action: action_set_brightness
+  - action: utter_confirm_action
+
+- story: greeting path
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- story: goodbye path
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye 

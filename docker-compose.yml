@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./be
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - MQTT_BROKER=mqtt
+      - MQTT_PORT=1883
+      - RASA_URL=http://rasa:5005
+    volumes:
+      - ./be:/app
+    depends_on:
+      - mongodb
+      - mqtt
+      - rasa
+    networks:
+      - iot-network
+
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    volumes:
+      - ./fe:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - iot-network
+
+  rasa:
+    build:
+      context: ./rasa
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
+    volumes:
+      - rasa_models:/app/models
+      - rasa_pip_cache:/root/.cache/pip
+    networks:
+      - iot-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - iot-network
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./be/mosquitto/config:/mosquitto/config
+      - ./be/mosquitto/data:/mosquitto/data
+      - ./be/mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  rasa_pip_cache:
+  rasa_models: 

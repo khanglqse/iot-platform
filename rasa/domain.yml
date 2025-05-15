@@ -1,0 +1,66 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - turn_on_device
+  - turn_off_device
+  - check_device_status
+  - set_device_temperature
+  - set_device_brightness
+  - ask_weather
+  - ask_time
+
+entities:
+  - device_name
+  - temperature
+  - brightness
+  - time
+
+slots:
+  device_name:
+    type: text
+    mappings:
+    - type: from_entity
+      entity: device_name
+  temperature:
+    type: float
+    mappings:
+    - type: from_entity
+      entity: temperature
+  brightness:
+    type: float
+    mappings:
+    - type: from_entity
+      entity: brightness
+
+responses:
+  utter_greet:
+    - text: "Xin chào! Tôi có thể giúp gì cho bạn với các thiết bị nhà thông minh?"
+    - text: "Chào bạn! Bạn muốn điều khiển thiết bị nào?"
+
+  utter_goodbye:
+    - text: "Tạm biệt! Chúc bạn một ngày tốt lành!"
+    - text: "Hẹn gặp lại! Bảo trọng nhé!"
+
+  utter_ask_device:
+    - text: "Bạn muốn điều khiển thiết bị nào?"
+
+  utter_confirm_action:
+    - text: "Tôi sẽ {action} {device_name} cho bạn."
+
+  utter_device_status:
+    - text: "{device_name} hiện đang {status}."
+
+actions:
+  - action_turn_on_device
+  - action_turn_off_device
+  - action_check_device_status
+  - action_set_temperature
+  - action_set_brightness
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true 

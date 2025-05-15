@@ -1,0 +1,4 @@
+rasa==3.6.2
+transformers==4.38.2
+torch==2.2.2
+jieba 

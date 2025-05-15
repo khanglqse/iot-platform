@@ -1,0 +1,38 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - xin chào
+    - chào bạn
+    - chào
+    - hi
+    - hello
+
+- intent: goodbye
+  examples: |
+    - tạm biệt
+    - chào tạm biệt
+    - hẹn gặp lại
+    - bye
+    - goodbye
+
+- intent: control_device
+  examples: |
+    - bật đèn
+    - tắt đèn
+    - bật quạt
+    - tắt quạt
+    - mở cửa
+    - đóng cửa
+    - điều chỉnh nhiệt độ điều hòa
+    - tăng âm lượng loa
+    - giảm âm lượng loa
+
+- intent: ask_device_status
+  examples: |
+    - đèn có đang bật không
+    - quạt có đang chạy không
+    - cửa có đang mở không
+    - nhiệt độ điều hòa là bao nhiêu
+    - âm lượng loa là bao nhiêu 
