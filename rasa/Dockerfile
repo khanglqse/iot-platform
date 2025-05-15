@@ -13,10 +13,13 @@ WORKDIR /app
 
 # Copy only necessary files
 COPY --chown=1001:1001 config.yml domain.yml ./
-COPY --chown=1001:1001 data/nlu.yml ./
+COPY --chown=1001:1001 data/ data/
+
+# Train model
+RUN rasa train
 
 EXPOSE 5005
-
+EXPOSE 5055
 USER 1001
 
 CMD [ "run", "--enable-api", "--cors", "*" ] 

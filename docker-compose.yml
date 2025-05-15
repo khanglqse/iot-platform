@@ -46,6 +46,8 @@ services:
     volumes:
       - rasa_models:/app/models
       - rasa_pip_cache:/root/.cache/pip
+      - ./rasa:/app
+    command: run --enable-api --cors "*" --endpoints /app/endpoints.yml
     networks:
       - iot-network
 
@@ -67,6 +69,16 @@ services:
       - ./be/mosquitto/config:/mosquitto/config
       - ./be/mosquitto/data:/mosquitto/data
       - ./be/mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
+
+  action-server:
+    build: ./rasa
+    ports:
+      - "5055:5055"
+    volumes:
+      - ./rasa:/app
+    command: run actions
     networks:
       - iot-network
 

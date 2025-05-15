@@ -32,11 +32,6 @@ nlu:
     - bật [điều hòa](device_name)
     - khởi động [máy sưởi](device_name)
     - bật [tivi](device_name)
-    - mở [đèn](device_name)
-    - bật [quạt](device_name)
-    - mở [điều hòa](device_name)
-    - khởi động [máy sưởi](device_name)
-    - mở [tivi](device_name)
 
 - intent: turn_off_device
   examples: |
@@ -45,11 +40,6 @@ nlu:
     - tắt [điều hòa](device_name)
     - tắt [máy sưởi](device_name)
     - tắt [tivi](device_name)
-    - đóng [đèn](device_name)
-    - đóng [quạt](device_name)
-    - đóng [điều hòa](device_name)
-    - đóng [máy sưởi](device_name)
-    - đóng [tivi](device_name)
 
 - intent: check_device_status
   examples: |
@@ -58,26 +48,33 @@ nlu:
     - [điều hòa](device_name) có đang chạy không
     - kiểm tra xem [máy sưởi](device_name) có đang hoạt động không
     - [tivi](device_name) đang bật hay tắt
-    - [đèn](device_name) đang bật hay tắt
-    - trạng thái [quạt](device_name)
-    - [điều hòa](device_name) đang chạy không
-    - kiểm tra [máy sưởi](device_name)
-    - trạng thái [tivi](device_name)
 
 - intent: set_device_temperature
   examples: |
     - đặt [điều hòa](device_name) ở [25](temperature) độ
     - điều chỉnh [máy sưởi](device_name) lên [22](temperature) độ
-    - đặt [nhiệt độ](device_name) ở [20](temperature) độ
-    - cài đặt nhiệt độ [điều hòa](device_name) là [25](temperature)
-    - điều chỉnh [máy sưởi](device_name) xuống [22](temperature)
-    - đặt [nhiệt độ](device_name) là [20](temperature)
 
 - intent: set_device_brightness
   examples: |
     - đặt độ sáng [đèn](device_name) ở [80](brightness) phần trăm
     - điều chỉnh [đèn](device_name) xuống [50](brightness) phần trăm
-    - giảm độ sáng [đèn](device_name) xuống [30](brightness) phần trăm
-    - đặt độ sáng của [đèn](device_name) là [80](brightness)
-    - điều chỉnh [đèn](device_name) lên [50](brightness)
-    - giảm [đèn](device_name) xuống [30](brightness) 
+
+- intent: set_volume
+  examples: |
+    - tăng âm lượng [loa](device_name) lên [50](volume)
+    - giảm âm lượng [loa](device_name) xuống [30](volume)
+
+- intent: set_fan_speed
+  examples: |
+    - chỉnh tốc độ [quạt](device_name) sang [auto](speed)
+    - tăng tốc độ [quạt](device_name) lên [max](speed)
+
+- intent: lock_door
+  examples: |
+    - khóa [cửa chính](device_name)
+    - đóng [cửa ra vào](device_name)
+
+- intent: unlock_door
+  examples: |
+    - mở khóa [cửa chính](device_name)
+    - mở [cửa ra vào](device_name)

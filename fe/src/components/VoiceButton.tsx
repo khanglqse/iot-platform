@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, message, Modal } from 'antd';
-import { AudioOutlined, LoadingOutlined } from '@ant-design/icons';
+import { AudioOutlined, LoadingOutlined, StopOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionError, SpeechRecognitionResult } from '../types/speech';
+import { processVoiceCommand } from '../services/deviceService';
+
 const VoiceButtonContainer = styled.div`
   position: fixed;
   bottom: 24px;
@@ -22,6 +24,7 @@ const TranscriptionText = styled.div`
 interface VoiceButtonProps {
   onVoiceData: (audioBlob: Blob, transcription?: string) => void;
 }
+
 
 const VoiceButton: React.FC<VoiceButtonProps> = ({ onVoiceData }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -112,25 +115,62 @@ const VoiceButton: React.FC<VoiceButtonProps> = ({ onVoiceData }) => {
   };
 
   const startRecording = () => {
-    try {
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
         setIsRecording(true);
-        setTranscription('');
         message.success('Bắt đầu nhận dạng giọng nói');
-      }
-    } catch (error) {
-      console.error('Error starting speech recognition:', error);
-      message.error('Không thể bắt đầu nhận dạng giọng nói');
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0].transcript)
+          .join('');
+        setTranscription(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        message.error('Lỗi nhận dạng giọng nói');
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } else {
+      message.error('Trình duyệt không hỗ trợ nhận dạng giọng nói');
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
     if (recognitionRef.current && isRecording) {
       recognitionRef.current.stop();
       setIsRecording(false);
       message.success('Đã dừng nhận dạng giọng nói');
       console.log('Kết quả cuối cùng:', transcription);
+
+      // Gọi API process-text thông qua deviceService
+      try {
+        const result = await processVoiceCommand(transcription);
+
+        if (result.status === 'success') {
+          message.success('Đã xử lý lệnh thành công');
+          console.log('Kết quả xử lý:', result);
+        } else {
+          message.error(result.message || 'Không thể xử lý lệnh');
+        }
+      } catch (error) {
+        console.error('Error processing text:', error);
+        message.error('Lỗi khi xử lý lệnh');
+      }
     }
   };
 
@@ -141,7 +181,7 @@ const VoiceButton: React.FC<VoiceButtonProps> = ({ onVoiceData }) => {
           type="primary"
           shape="circle"
           size="large"
-          icon={isRecording ? <LoadingOutlined /> : <AudioOutlined />}
+          icon={isRecording ? <StopOutlined /> : <AudioOutlined />}
           onClick={isRecording ? stopRecording : startRecording}
           style={{
             width: '64px',

@@ -3,38 +3,49 @@ version: "3.1"
 intents:
   - greet
   - goodbye
-  - affirm
-  - deny
   - turn_on_device
   - turn_off_device
   - check_device_status
   - set_device_temperature
   - set_device_brightness
-  - ask_weather
-  - ask_time
+  - set_volume
+  - set_fan_speed
+  - lock_door
+  - unlock_door
 
 entities:
   - device_name
   - temperature
   - brightness
-  - time
+  - volume
+  - speed
 
 slots:
   device_name:
     type: text
     mappings:
-    - type: from_entity
-      entity: device_name
+      - type: from_entity
+        entity: device_name
   temperature:
     type: float
     mappings:
-    - type: from_entity
-      entity: temperature
+      - type: from_entity
+        entity: temperature
   brightness:
     type: float
     mappings:
-    - type: from_entity
-      entity: brightness
+      - type: from_entity
+        entity: brightness
+  volume:
+    type: float
+    mappings:
+      - type: from_entity
+        entity: volume
+  speed:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: speed
 
 responses:
   utter_greet:
@@ -45,22 +56,17 @@ responses:
     - text: "Tạm biệt! Chúc bạn một ngày tốt lành!"
     - text: "Hẹn gặp lại! Bảo trọng nhé!"
 
-  utter_ask_device:
-    - text: "Bạn muốn điều khiển thiết bị nào?"
-
-  utter_confirm_action:
-    - text: "Tôi sẽ {action} {device_name} cho bạn."
-
-  utter_device_status:
-    - text: "{device_name} hiện đang {status}."
-
 actions:
   - action_turn_on_device
   - action_turn_off_device
+  - action_lock_door
+  - action_unlock_door
   - action_check_device_status
   - action_set_temperature
   - action_set_brightness
+  - action_set_volume
+  - action_set_fan_speed
 
 session_config:
   session_expiration_time: 60
-  carry_over_slots_to_new_session: true 
+  carry_over_slots_to_new_session: true

@@ -349,26 +349,64 @@ async def process_text(text: str = Body(..., embed=True)):
         # Trích xuất lệnh điều khiển thiết bị từ phản hồi của Rasa
         command = extract_device_command(rasa_analysis)
         
-        if command["action"] and command["device"]:
+        if command["action"] and command["device_name"]:
             # Tìm thiết bị trong database
             device = db.devices.find_one({
-                "type": command["device"],
-                "room": command["room"]
+                "name": command["device_name"]
             })
             
             if device:
+                device_id = device.get("id")
+                if not device_id:
+                    return {
+                        "status": "error",
+                        "message": "Device ID not found",
+                        "rasa_analysis": rasa_analysis,
+                        "command": command
+                    }
+
+                # Tạo payload cho MQTT
+                payload = {
+                    "action": command["action"]
+                }
+                if command.get("value"):
+                    payload["value"] = command["value"]
+
                 # Gửi lệnh qua MQTT
-                await execute_device_action(
-                    str(device["_id"]),
-                    command["action"],
-                    command.get("value")
+                topic = f"iot/devices/{device_id}"
+                mqtt_client.publish(topic, json.dumps(payload))
+                
+                # Cập nhật trạng thái trong database
+                status_update = {
+                    "id": device_id,
+                    "timestamp": datetime.datetime.utcnow(),
+                    **payload
+                }
+                db.device_status.update_one(
+                    {"id": device_id},
+                    {"$set": status_update},
+                    upsert=True
                 )
+
+                # Ghi log
+                log_entry = {
+                    "device_id": device_id,
+                    "timestamp": datetime.datetime.utcnow(),
+                    "action": "voice_command",
+                    "details": {
+                        "text": text,
+                        "command": command,
+                        "payload": payload
+                    }
+                }
+                db.device_logs.insert_one(log_entry)
                 
                 return {
                     "status": "success",
                     "rasa_analysis": rasa_analysis,
                     "command": command,
-                    "device_id": str(device["_id"])
+                    "device_id": device_id,
+                    "payload": payload
                 }
             else:
                 return {

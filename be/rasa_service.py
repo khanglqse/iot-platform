@@ -41,21 +41,18 @@ def extract_device_command(rasa_response: Dict[str, Any]) -> Dict[str, Any]:
     if not rasa_response.get("rasa_response"):
         return {
             "action": None,
-            "device": None,
-            "room": None
+            "device_name": None
         }
 
     for response in rasa_response["rasa_response"]:
         if "custom" in response:
             return {
                 "action": response["custom"].get("action"),
-                "device": response["custom"].get("device_name"),
-                "room": response["custom"].get("room"),
+                "device_name": response["custom"].get("device_name"),
                 "value": response["custom"].get("value")
             }
     
     return {
         "action": None,
-        "device": None,
-        "room": None
+        "device_name": None
     } 

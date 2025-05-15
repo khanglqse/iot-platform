@@ -88,4 +88,10 @@ export const getDeviceStatus = async (deviceId: string): Promise<Device> => {
 export const updateDeviceStatus = async (deviceId: string, updates: Partial<Device>): Promise<Device> => {
   const response = await axios.patch(`${API_BASE_URL}/devices/${deviceId}/status`, updates);
   return response.data;
+};
+
+// Process voice command text
+export const processVoiceCommand = async (text: string): Promise<any> => {
+  const response = await axios.post(`${API_BASE_URL}/process-text`, { text });
+  return response.data;
 }; 

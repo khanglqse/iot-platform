@@ -1,35 +1,72 @@
 version: "3.1"
 
 stories:
-- story: turn on device path
+- story: turn on light path
   steps:
   - intent: turn_on_device
+    entities:
+    - device_name: "đèn phòng khách"
   - action: action_turn_on_device
-  - action: utter_confirm_action
 
-- story: turn off device path
+- story: turn off light path
   steps:
   - intent: turn_off_device
+    entities:
+    - device_name: "đèn phòng khách"
   - action: action_turn_off_device
-  - action: utter_confirm_action
-
-- story: check device status path
-  steps:
-  - intent: check_device_status
-  - action: action_check_device_status
-  - action: utter_device_status
 
 - story: set temperature path
   steps:
   - intent: set_device_temperature
+    entities:
+    - device_name: "điều hòa phòng khách"
+    - temperature: 25
   - action: action_set_temperature
-  - action: utter_confirm_action
 
 - story: set brightness path
   steps:
   - intent: set_device_brightness
+    entities:
+    - device_name: "đèn phòng khách"
+    - brightness: 80
   - action: action_set_brightness
-  - action: utter_confirm_action
+
+- story: set volume path
+  steps:
+  - intent: set_volume
+    entities:
+    - device_name: "loa phòng khách"
+    - volume: 50
+  - action: action_set_volume
+
+- story: set fan speed path
+  steps:
+  - intent: set_fan_speed
+    entities:
+    - device_name: "quạt trần phòng khách"
+    - speed: "auto"
+  - action: action_set_fan_speed
+
+- story: lock door path
+  steps:
+  - intent: lock_door
+    entities:
+    - device_name: "cửa chính"
+  - action: action_lock_door
+
+- story: unlock door path
+  steps:
+  - intent: unlock_door
+    entities:
+    - device_name: "cửa chính"
+  - action: action_unlock_door
+
+- story: check device status path
+  steps:
+  - intent: check_device_status
+    entities:
+    - device_name: "đèn phòng khách"
+  - action: action_check_device_status
 
 - story: greeting path
   steps:
@@ -39,4 +76,4 @@ stories:
 - story: goodbye path
   steps:
   - intent: goodbye
-  - action: utter_goodbye 
+  - action: utter_goodbye
