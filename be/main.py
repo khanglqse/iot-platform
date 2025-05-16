@@ -10,9 +10,11 @@ import requests
 import asyncio
 import aiohttp
 import datetime
-from models import Fan, AirConditioner, Speaker, Light, Door, DeviceStatus
+from models import Fan, AirConditioner, Speaker, Light, Door, DeviceStatus, Timer
 from typing import List, Dict, Any
 from rasa_service import analyze_text_with_rasa, extract_device_command
+from bson.objectid import ObjectId
+import uuid
 
 app = FastAPI()
 
@@ -459,6 +461,188 @@ async def get_device_logs(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Timer endpoints
+@app.post("/devices/{device_id}/timers", response_model=Timer)
+async def create_timer(device_id: str, timer: Timer):
+    # Validate device exists
+    device = db.device_status.find_one(
+        {"id": device_id},
+        sort=[("timestamp", -1)]
+    )
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    # Create timer with custom ID
+    timer_dict = timer.dict()
+    timer_dict["device_id"] = device_id
+    timer_dict["id"] = str(uuid.uuid4())  # Generate unique ID
+    timer_dict["created_at"] = datetime.datetime.now()
+    timer_dict["last_run"] = None
+    
+    # Insert timer and get the result
+    result = db.timers.insert_one(timer_dict)
+    
+    # Return the created timer with id
+    return timer_dict
+
+@app.get("/devices/{device_id}/timers", response_model=List[Timer])
+async def get_device_timers(device_id: str):
+    # Validate device exists
+    device = db.device_status.find_one(
+        {"id": device_id},
+        sort=[("timestamp", -1)]
+    )
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+        
+    # Get timers and ensure id field is included
+    timers = list(db.timers.find(
+        {"device_id": device_id},
+    ))
+    print(timers)
+    return timers
+
+@app.put("/devices/{device_id}/timers/{timer_id}")
+async def update_timer(device_id: str, timer_id: str, timer: Timer):
+    # Validate device exists
+    device = db.device_status.find_one(
+        {"id": device_id},
+        sort=[("timestamp", -1)]
+    )
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    # Validate timer exists
+    existing_timer = db.timers.find_one({
+        "id": timer_id,
+        "device_id": device_id
+    })
+    if not existing_timer:
+        raise HTTPException(status_code=404, detail="Timer not found")
+    
+    # Update timer
+    timer_dict = timer.dict()
+    timer_dict["id"] = timer_id  # Keep the original id
+    timer_dict["device_id"] = device_id  # Keep the device_id
+    
+    # Update in database
+    db.timers.update_one(
+        {"id": timer_id},
+        {"$set": timer_dict}
+    )
+    
+    # Return updated timer
+    updated_timer = db.timers.find_one(
+        {"id": timer_id},
+        {"_id": 0}  # Exclude MongoDB _id field
+    )
+    return updated_timer
+
+@app.delete("/devices/{device_id}/timers/{timer_id}")
+async def delete_timer(device_id: str, timer_id: str):
+    # Validate device exists
+    device = db.device_status.find_one(
+        {"id": device_id},
+        sort=[("timestamp", -1)]
+    )
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+        
+    result = db.timers.delete_one({
+        "id": timer_id,
+        "device_id": device_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Timer not found")
+    
+    return {"status": "success"}
+
+# Timer execution function
+async def execute_timer(timer: dict):
+    """Execute a timer action"""
+    try:
+        # Get device details
+        device = db.device_status.find_one(
+            {"id": timer["device_id"]},
+            sort=[("timestamp", -1)]
+        )
+        if not device:
+            return
+        
+        # Create action payload
+        payload = {
+            "action": timer["action"]
+        }
+        if timer.get("value") is not None:
+            payload["value"] = timer["value"]
+        
+        # Send MQTT message
+        topic = f"iot/devices/{timer['device_id']}"
+        mqtt_client.publish(topic, json.dumps(payload))
+        
+        # Update last run time
+        db.timers.update_one(
+            {"id": timer["id"]},
+            {"$set": {"last_run": datetime.datetime.now()}}
+        )
+        
+        # Log the action
+        log_entry = {
+            "device_id": timer["device_id"],
+            "timestamp": datetime.datetime.now(),
+            "action": "timer_execution",
+            "details": {
+                "timer_id": timer["id"],
+                "timer_name": timer["name"],
+                "action": timer["action"],
+                "value": timer.get("value")
+            }
+        }
+        db.device_logs.insert_one(log_entry)
+        
+    except Exception as e:
+        print(f"Error executing timer: {str(e)}")
+
+# Timer scheduler
+async def check_timers():
+    """Check and execute due timers"""
+    while True:
+        try:
+            current_time = datetime.datetime.now()
+            current_weekday = current_time.weekday()
+            
+            # Find due timers
+            due_timers = db.timers.find({
+                "is_active": True,
+                "$or": [
+                    {"days_of_week": current_weekday},
+                    {"days_of_week": []}  # Daily timers
+                ]
+            })
+            
+            for timer in due_timers:
+                schedule_time = timer["schedule_time"]
+                if isinstance(schedule_time, str):
+                    schedule_time = datetime.datetime.fromisoformat(schedule_time)
+                
+                # Check if it's time to execute
+                if (current_time.hour == schedule_time.hour and 
+                    current_time.minute == schedule_time.minute):
+                    await execute_timer(timer)
+            
+            # Wait for 1 minute before next check
+            await asyncio.sleep(60)
+            
+        except Exception as e:
+            print(f"Error in timer scheduler: {str(e)}")
+            await asyncio.sleep(60)
+
+# Start timer scheduler
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(check_timers())
 
 if __name__ == "__main__":
     import uvicorn

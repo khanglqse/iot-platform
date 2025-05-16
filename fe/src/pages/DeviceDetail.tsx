@@ -70,11 +70,6 @@ const DeviceDetail: React.FC = () => {
   useEffect(() => {
     fetchDeviceDetails();
     fetchDeviceLogs();
-    
-    // Set up polling for device status updates
-    const intervalId = setInterval(fetchDeviceDetails, 30000); // Poll every 30 seconds
-    
-    return () => clearInterval(intervalId);
   }, [id]);
 
   const handleDeviceUpdate = async (updates: Partial<Device>) => {

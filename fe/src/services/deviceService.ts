@@ -131,4 +131,42 @@ export const getDeviceLogs = async (
     }
   });
   return response.data;
+};
+
+export interface Timer {
+  id?: string;
+  device_id: string;
+  name: string;
+  action: string;
+  value?: any;
+  schedule_time: string;
+  days_of_week: number[];
+  is_active: boolean;
+  created_at?: string;
+  last_run?: string;
+}
+
+// Timer APIs
+export const createTimer = async (deviceId: string, timer: Timer): Promise<Timer> => {
+  const response = await axios.post(`${API_BASE_URL}/devices/${deviceId}/timers`, timer);
+  return response.data;
+};
+
+export const getDeviceTimers = async (deviceId: string): Promise<Timer[]> => {
+  const response = await axios.get(`${API_BASE_URL}/devices/${deviceId}/timers`);
+  return response.data;
+};
+
+export const updateTimer = async (deviceId: string, timerId: string, timerData: Timer): Promise<Timer> => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/devices/${deviceId}/timers/${timerId}`, timerData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating timer:', error);
+    throw error;
+  }
+};
+
+export const deleteTimer = async (deviceId: string, timerId: string): Promise<void> => {
+  await axios.delete(`${API_BASE_URL}/devices/${deviceId}/timers/${timerId}`);
 }; 

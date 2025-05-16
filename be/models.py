@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional, Literal, Dict, Any
 from datetime import datetime
 
 class DeviceBase(BaseModel):
@@ -42,4 +42,16 @@ class DeviceStatus(BaseModel):
     device_id: str
     status: bool
     timestamp: datetime
-    details: dict 
+    details: dict
+
+class Timer(BaseModel):
+    id: str
+    device_id: str
+    name: str
+    action: str
+    value: Optional[Any] = None
+    schedule_time: datetime
+    days_of_week: list[int] = []  # 0-6 for Sunday-Saturday
+    is_active: bool = True
+    created_at: datetime = datetime.now()
+    last_run: Optional[datetime] = None 

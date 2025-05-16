@@ -9,7 +9,7 @@ load_dotenv()
 # Connect to MongoDB
 client = MongoClient(os.getenv('MONGODB_URL', 'mongodb://localhost:27017'))
 db = client['iot_db']
-devices_collection = db['devices_status']
+devices_collection = db['device_status']
 
 # Mock devices data
 mock_devices = [
