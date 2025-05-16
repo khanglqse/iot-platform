@@ -426,6 +426,40 @@ async def process_text(text: str = Body(..., embed=True)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/devices/{device_id}/logs")
+async def get_device_logs(
+    device_id: str,
+    limit: int = 50,
+    skip: int = 0
+):
+    """
+    Get logs for a specific device with pagination support
+    """
+    try:
+        # Query logs for the specific device
+        logs = list(db.device_logs.find(
+            {"device_id": device_id},
+            {"_id": 0}  # Exclude MongoDB _id field
+        ).sort("timestamp", -1).skip(skip).limit(limit))
+        
+        # Get total count for pagination
+        total_count = db.device_logs.count_documents({"device_id": device_id})
+        
+        return {
+            "status": "success",
+            "data": {
+                "logs": logs,
+                "pagination": {
+                    "total": total_count,
+                    "limit": limit,
+                    "skip": skip,
+                    "has_more": (skip + limit) < total_count
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 

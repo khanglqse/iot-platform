@@ -3,6 +3,27 @@ import { Device, FanDevice, ACDevice, SpeakerDevice, LightDevice, DoorDevice } f
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+// Device Logs Interface
+export interface DeviceLog {
+  device_id: string;
+  timestamp: string;
+  action: string;
+  details: any;
+}
+
+export interface DeviceLogsResponse {
+  status: string;
+  data: {
+    logs: DeviceLog[];
+    pagination: {
+      total: number;
+      limit: number;
+      skip: number;
+      has_more: boolean;
+    };
+  };
+}
+
 // Get all devices
 export const getAllDevices = async (): Promise<Device[]> => { 
   const response = await axios.get(`${API_BASE_URL}/devices`);
@@ -93,5 +114,21 @@ export const updateDeviceStatus = async (deviceId: string, updates: Partial<Devi
 // Process voice command text
 export const processVoiceCommand = async (text: string): Promise<any> => {
   const response = await axios.post(`${API_BASE_URL}/process-text`, { text });
+  return response.data;
+};
+
+// Get device logs with pagination
+export const getDeviceLogs = async (
+  deviceId: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<DeviceLogsResponse> => {
+  const skip = (page - 1) * pageSize;
+  const response = await axios.get(`${API_BASE_URL}/devices/${deviceId}/logs`, {
+    params: {
+      limit: pageSize,
+      skip: skip
+    }
+  });
   return response.data;
 }; 

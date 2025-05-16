@@ -16,7 +16,7 @@ COPY --chown=1001:1001 config.yml domain.yml ./
 COPY --chown=1001:1001 data/ data/
 
 # Train model
-RUN rasa train
+# RUN rasa train
 
 EXPOSE 5005
 EXPOSE 5055

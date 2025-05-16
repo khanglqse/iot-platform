@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Descriptions, Tag, Button, Tabs, Typography, Layout, Space, message, Spin, Alert } from 'antd';
+import { Card, Descriptions, Tag, Button, Tabs, Typography, Layout, Space, message, Spin, Alert, Table } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Device, ACDevice, LightDevice, DoorDevice, SpeakerDevice } from '../types/devices';
 import ACControl from '../components/device-controls/ACControl';
@@ -8,17 +8,10 @@ import LightControl from '../components/device-controls/LightControl';
 import DoorControl from '../components/device-controls/DoorControl';
 import SpeakerControl from '../components/device-controls/SpeakerControl';
 import TimerControl from '../components/device-controls/TimerControl';
-import { getDeviceStatus, updateDeviceStatus } from '../services/deviceService';
+import { getDeviceStatus, updateDeviceStatus, getDeviceLogs, DeviceLog } from '../services/deviceService';
 
 const { Title } = Typography;
 const { Header, Content } = Layout;
-
-interface DeviceLog {
-  id: string;
-  timestamp: string;
-  action: string;
-  details: string;
-}
 
 const DeviceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +20,12 @@ const DeviceDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<DeviceLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
 
   const fetchDeviceDetails = async () => {
     if (!id) return;
@@ -45,8 +44,32 @@ const DeviceDetail: React.FC = () => {
     }
   };
 
+  const fetchDeviceLogs = async (page: number = 1, pageSize: number = 10) => {
+    if (!id) return;
+    
+    try {
+      setLogsLoading(true);
+      const response = await getDeviceLogs(id, page, pageSize);
+      
+      if (response.status === 'success') {
+        setLogs(response.data.logs);
+        setPagination({
+          current: page,
+          pageSize: pageSize,
+          total: response.data.pagination.total
+        });
+      }
+    } catch (err) {
+      message.error('Không thể tải lịch sử hoạt động');
+      console.error('Error fetching device logs:', err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDeviceDetails();
+    fetchDeviceLogs();
     
     // Set up polling for device status updates
     const intervalId = setInterval(fetchDeviceDetails, 30000); // Poll every 30 seconds
@@ -91,6 +114,40 @@ const DeviceDetail: React.FC = () => {
         return null;
     }
   };
+
+  const columns = [
+    {
+      title: 'Thời gian',
+      dataIndex: 'timestamp',
+      key: 'timestamp',
+      render: (timestamp: string) => new Date(timestamp).toLocaleString(),
+      sorter: (a: DeviceLog, b: DeviceLog) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+    },
+    {
+      title: 'Hành động',
+      dataIndex: 'action',
+      key: 'action',
+      render: (action: string) => (
+        <Tag color={
+          action.includes('on') ? 'green' : 
+          action.includes('off') ? 'red' :
+          action.includes('update') ? 'blue' : 'default'
+        }>
+          {action}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Chi tiết',
+      dataIndex: 'details',
+      key: 'details',
+      render: (details: any) => (
+        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+          {JSON.stringify(details, null, 2)}
+        </pre>
+      ),
+    },
+  ];
 
   if (loading) {
     return (
@@ -148,13 +205,22 @@ const DeviceDetail: React.FC = () => {
       label: 'Lịch sử hoạt động',
       children: (
         <div>
-          {logs.map(log => (
-            <Card key={log.id} style={{ marginBottom: 16 }}>
-              <p><strong>Thời gian:</strong> {new Date(log.timestamp).toLocaleString()}</p>
-              <p><strong>Hành động:</strong> {log.action}</p>
-              <p><strong>Chi tiết:</strong> {log.details}</p>
-            </Card>
-          ))}
+          <Spin spinning={logsLoading}>
+            <Table
+              columns={columns}
+              dataSource={logs}
+              rowKey="timestamp"
+              pagination={{
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+                total: pagination.total,
+                onChange: (page, pageSize) => fetchDeviceLogs(page, pageSize),
+                showSizeChanger: true,
+                showTotal: (total) => `Tổng số ${total} bản ghi`,
+              }}
+              scroll={{ x: true }}
+            />
+          </Spin>
         </div>
       ),
     },
