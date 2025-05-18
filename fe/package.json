@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/charts": "^2.3.0",
     "@ant-design/icons": "^5.0.1",
     "@google-cloud/speech": "^5.5.0",
     "@testing-library/jest-dom": "^5.16.5",
@@ -15,6 +16,8 @@
     "@types/styled-components": "^5.1.26",
     "antd": "^5.2.2",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.8.0",

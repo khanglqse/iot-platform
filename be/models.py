@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal, Dict, Any
+from typing import Optional, Literal, Dict, Any, List
 from datetime import datetime
 
 class DeviceBase(BaseModel):
@@ -54,4 +54,41 @@ class Timer(BaseModel):
     days_of_week: list[int] = []  # 0-6 for Sunday-Saturday
     is_active: bool = True
     created_at: datetime = datetime.now()
-    last_run: Optional[datetime] = None 
+    last_run: Optional[datetime] = None
+
+class SensorReading(BaseModel):
+    sensor_id: str
+    type: Literal["temperature", "humidity", "motion", "soil_moisture"]
+    value: float
+    unit: str
+    location: str
+    timestamp: datetime
+
+class PlantData(BaseModel):
+    plant_id: str
+    soil_moisture: float
+    temperature: float
+    humidity: float
+    light_level: float
+    last_watered: datetime
+    location: str
+    timestamp: datetime
+
+class RoomEnvironment(BaseModel):
+    room_id: str
+    temperature: float
+    humidity: float
+    occupancy_count: int
+    last_motion: Optional[datetime]
+    location: str
+    timestamp: datetime
+
+class SensorStats(BaseModel):
+    sensor_id: str
+    type: str
+    min_value: float
+    max_value: float
+    avg_value: float
+    total_readings: int
+    start_time: datetime
+    end_time: datetime 
