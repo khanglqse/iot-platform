@@ -19,7 +19,7 @@ app.add_middleware(
 # Include routers
 app.include_router(device_router.router)
 app.include_router(timer_router.router)
-app.include_router(sensor_router.router)
+app.include_router(sensor_router.router, prefix="/api")
 app.include_router(dashboard_router.router)
 
 # Initialize MQTT service
@@ -35,9 +35,14 @@ async def startup_event():
     timer_service = TimerService()
     asyncio.create_task(timer_service.check_timers())
 
+    # Initialize database
+    # Start MQTT service
+    mqtt_service.start()
+
 @app.on_event("shutdown")
 async def shutdown_event():
-    mqtt_service.cleanup()
+    # Stop MQTT service
+    mqtt_service.stop()
 
 if __name__ == "__main__":
     import uvicorn
