@@ -91,4 +91,15 @@ class SensorStats(BaseModel):
     avg_value: float
     total_readings: int
     start_time: datetime
-    end_time: datetime 
+    end_time: datetime
+
+class SensorFeed(BaseModel):
+    device_id: str
+    timestamp: datetime
+    temperature: float
+    humidity: float
+    light_level: float
+    soil_moisture: Optional[float] = None
+    location: str
+    battery_level: Optional[float] = None
+    signal_strength: Optional[float] = None 

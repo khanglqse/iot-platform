@@ -4,6 +4,11 @@ import paho.mqtt.client as mqtt
 from typing import Any, Dict
 from database import db
 import datetime
+from motor.motor_asyncio import AsyncIOMotorClient
+from models import SensorFeed
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class MQTTService:
     _instance = None
@@ -35,6 +40,10 @@ class MQTTService:
         self.mqtt_client.connect(self.mqtt_broker, self.mqtt_port, 60)
         self.mqtt_client.loop_start()
         
+        self.mongo_client = AsyncIOMotorClient(os.getenv("MONGODB_URL", "mongodb://localhost:27017"))
+        self.db = self.mongo_client.iot_db
+        self.sensor_feeds = self.db.sensor_feeds
+        
         self._initialized = True
 
     def on_connect(self, client, userdata, flags, rc):
@@ -45,8 +54,30 @@ class MQTTService:
         client.subscribe("iot/environment/#")
         client.subscribe("iot/plants/#")
 
-    def on_message(self, client, userdata, msg):
-        print(f"Received message on topic {msg.topic}: {msg.payload.decode()}")
+    async def on_message(self, client, userdata, msg):
+        try:
+            # Parse the message payload
+            payload = json.loads(msg.payload.decode())
+            
+            # Create sensor feed document
+            sensor_feed = SensorFeed(
+                device_id=payload.get("device_id"),
+                timestamp=datetime.datetime.now(),
+                temperature=payload.get("temperature"),
+                humidity=payload.get("humidity"),
+                light_level=payload.get("light_level"),
+                soil_moisture=payload.get("soil_moisture"),
+                location=payload.get("location"),
+                battery_level=payload.get("battery_level"),
+                signal_strength=payload.get("signal_strength")
+            )
+
+            # Insert into MongoDB
+            await self.sensor_feeds.insert_one(sensor_feed.dict())
+            print(f"Saved sensor data from device {sensor_feed.device_id}")
+
+        except Exception as e:
+            print(f"Error processing message: {e}")
 
     async def on_sensor_message(self, client, userdata, msg):
         try:
@@ -87,6 +118,18 @@ class MQTTService:
         except Exception as e:
             print(f"Error publishing message: {e}")
             return False
+
+    def start(self):
+        # Connect to MQTT broker
+        mqtt_host = os.getenv("MQTT_HOST", "localhost")
+        mqtt_port = int(os.getenv("MQTT_PORT", "1883"))
+        
+        self.mqtt_client.connect(mqtt_host, mqtt_port, 60)
+        self.mqtt_client.loop_start()
+
+    def stop(self):
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()
 
     def cleanup(self):
         """Clean up MQTT client resources"""
