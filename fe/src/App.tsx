@@ -86,7 +86,6 @@ function App() {
               <Routes>
                 <Route path="/devices" element={<DeviceManagement />} />
                 <Route path="/devices/:id" element={<DeviceDetail />} />
-                <Route path="/" element={<DeviceManagement />} />
               </Routes>
             </Content>
           </Layout>

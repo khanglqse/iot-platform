@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/charts": "^2.3.0",
+    "@antv/util": "^3.3.10",
     "@ant-design/icons": "^5.0.1",
     "@google-cloud/speech": "^5.5.0",
     "@testing-library/jest-dom": "^5.16.5",

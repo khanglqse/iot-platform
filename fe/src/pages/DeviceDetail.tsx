@@ -17,10 +17,11 @@ const DeviceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [device, setDevice] = useState<Device | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [logs, setLogs] = useState<DeviceLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('control');
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -67,17 +68,20 @@ const DeviceDetail: React.FC = () => {
     }
   };
 
+  // Load data based on active tab
   useEffect(() => {
-    fetchDeviceDetails();
-    fetchDeviceLogs();
-  }, [id]);
+    if (activeTab === 'control' || activeTab === 'timer') {
+      fetchDeviceDetails();
+    } else if (activeTab === 'history') {
+      fetchDeviceLogs(pagination.current, pagination.pageSize);
+    }
+  }, [activeTab]);
 
   const handleDeviceUpdate = async (updates: Partial<Device>) => {
     if (!device || !id) return;
     
     try {
       await updateDeviceStatus(id, updates);
-      // Merge updates with current device state
       setDevice(prevDevice => {
         if (!prevDevice) return null;
         return {
@@ -144,14 +148,6 @@ const DeviceDetail: React.FC = () => {
     },
   ];
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <Alert
@@ -168,32 +164,24 @@ const DeviceDetail: React.FC = () => {
     );
   }
 
-  if (!device) {
-    return (
-      <Alert
-        message="Không tìm thấy thiết bị"
-        description="Thiết bị bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
-        type="warning"
-        showIcon
-        action={
-          <Button type="primary" onClick={() => navigate('/devices')}>
-            Quay lại danh sách thiết bị
-          </Button>
-        }
-      />
-    );
-  }
-
   const items = [
     {
       key: 'control',
       label: 'Điều khiển',
-      children: renderDeviceControl(),
+      children: (
+        <Spin spinning={loading && activeTab === 'control'}>
+          {renderDeviceControl()}
+        </Spin>
+      ),
     },
     {
       key: 'timer',
       label: 'Hẹn giờ',
-      children: <TimerControl device={device} onUpdate={handleDeviceUpdate} />,
+      children: (
+        <Spin spinning={loading && activeTab === 'timer'}>
+          {device && <TimerControl device={device} onUpdate={handleDeviceUpdate} />}
+        </Spin>
+      ),
     },
     {
       key: 'history',
@@ -231,28 +219,33 @@ const DeviceDetail: React.FC = () => {
           >
             Quay lại
           </Button>
-          <Title level={3} style={{ margin: '16px 0' }}>{device.name}</Title>
+          <Title level={3} style={{ margin: '16px 0' }}>
+            {device ? device.name : 'Loading...'}
+          </Title>
         </Space>
       </Header>
       <Layout style={{ padding: '24px' }}>
         <Content>
           <Card>
-            <Descriptions title="Thông tin thiết bị" bordered>
-              <Descriptions.Item label="Tên thiết bị">{device.name}</Descriptions.Item>
-              <Descriptions.Item label="Loại thiết bị">{device.type}</Descriptions.Item>
-              <Descriptions.Item label="Vị trí">{device.location}</Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                <Tag color={device.status === 'online' ? 'green' : 'red'}>
-                  {device.status === 'online' ? 'Hoạt động' : 'Mất kết nối'}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Lần cuối hoạt động">
-                {new Date(device.lastSeen).toLocaleString()}
-              </Descriptions.Item>
-            </Descriptions>
+            {device && (
+              <Descriptions title="Thông tin thiết bị" bordered>
+                <Descriptions.Item label="Tên thiết bị">{device.name}</Descriptions.Item>
+                <Descriptions.Item label="Loại thiết bị">{device.type}</Descriptions.Item>
+                <Descriptions.Item label="Vị trí">{device.location}</Descriptions.Item>
+                <Descriptions.Item label="Trạng thái">
+                  <Tag color={device.status === 'online' ? 'green' : 'red'}>
+                    {device.status === 'online' ? 'Hoạt động' : 'Mất kết nối'}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Lần cuối hoạt động">
+                  {new Date(device.lastSeen).toLocaleString()}
+                </Descriptions.Item>
+              </Descriptions>
+            )}
 
             <Tabs
-              defaultActiveKey="control"
+              activeKey={activeTab}
+              onChange={setActiveTab}
               items={items}
               style={{ marginTop: 24 }}
             />
