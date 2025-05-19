@@ -1,0 +1,51 @@
+.sensor-dashboard {
+    padding: 24px;
+}
+
+.location-card {
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.location-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.location-card.selected {
+    border: 2px solid #1890ff;
+    background-color: #e6f7ff;
+}
+
+.sensor-count {
+    color: #666;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.selected-location-sensors {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.filter-section {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.sensor-charts-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+} 

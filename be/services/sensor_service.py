@@ -4,6 +4,135 @@ from fastapi import HTTPException
 from database import db
 
 class SensorService:
+    async def get_all_sensors(self) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get all sensors grouped by location
+        """
+        try:
+            # Get the latest reading for each sensor
+            pipeline = [
+                {
+                    "$sort": {"timestamp": -1}
+                },
+                {
+                    "$group": {
+                        "_id": "$device_id",
+                        "latest_reading": {"$first": "$$ROOT"}
+                    }
+                },
+                {
+                    "$replaceRoot": {"newRoot": "$latest_reading"}
+                },
+                {
+                    "$group": {
+                        "_id": "$location",
+                        "sensors": {"$push": "$$ROOT"}
+                    }
+                }
+            ]
+            
+            result = await db.sensor_data.aggregate(pipeline).to_list(None)
+            
+            # Format the response to match frontend expectations
+            return {
+                "locations": [
+                    {
+                        "location": group["_id"],
+                        "sensors": [
+                            {
+                                "device_id": sensor["device_id"],
+                                "timestamp": sensor["timestamp"],
+                                "temperature": sensor["temperature"],
+                                "humidity": sensor["humidity"],
+                                "light_level": sensor["light_level"],
+                                "soil_moisture": sensor["soil_moisture"],
+                                "location": sensor["location"],
+                                "type": sensor["type"]
+                            }
+                            for sensor in group["sensors"]
+                        ]
+                    }
+                    for group in result
+                ]
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_sensors_by_location(self, location: str) -> List[Dict[str, Any]]:
+        """
+        Get all sensors for a specific location
+        """
+        try:
+            # Get the latest reading for each sensor in the location
+            pipeline = [
+                {
+                    "$match": {"location": location}
+                },
+                {
+                    "$sort": {"timestamp": -1}
+                },
+                {
+                    "$group": {
+                        "_id": "$device_id",
+                        "latest_reading": {"$first": "$$ROOT"}
+                    }
+                },
+                {
+                    "$replaceRoot": {"newRoot": "$latest_reading"}
+                }
+            ]
+            
+            sensors = await db.sensor_data.aggregate(pipeline).to_list(None)
+            return sensors
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_sensor_by_id(self, device_id: str) -> Dict[str, Any]:
+        """
+        Get the latest sensor data for a specific device
+        """
+        try:
+            sensor = await db.sensor_data.find_one(
+                {"device_id": device_id},
+                sort=[("timestamp", -1)]
+            )
+            
+            if not sensor:
+                raise HTTPException(status_code=404, detail=f"Sensor {device_id} not found")
+                
+            return sensor
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_sensor_history(
+        self,
+        device_id: str,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Get historical sensor data for a specific device
+        """
+        try:
+            query = {"device_id": device_id}
+            
+            if start_time and end_time:
+                query["timestamp"] = {
+                    "$gte": start_time,
+                    "$lte": end_time
+                }
+            
+            history = await db.sensor_data.find(
+                query,
+                sort=[("timestamp", -1)],
+                limit=limit
+            ).to_list(None)
+            
+            return history
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
     async def get_sensor_readings(
         self,
         sensor_id: str,

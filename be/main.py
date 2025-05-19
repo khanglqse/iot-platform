@@ -19,7 +19,7 @@ app.add_middleware(
 # Include routers
 app.include_router(device_router.router)
 app.include_router(timer_router.router)
-app.include_router(sensor_router.router, prefix="/api")
+app.include_router(sensor_router.router)
 app.include_router(dashboard_router.router)
 
 # Initialize MQTT service

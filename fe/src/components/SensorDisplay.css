@@ -1,0 +1,78 @@
+.sensor-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.sensor-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.sensor-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.location-badge, .type-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.location-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.type-badge {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.sensor-timestamp {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.sensor-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.sensor-card:hover {
+    transform: translateY(-5px);
+}
+
+.sensor-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.sensor-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.sensor-label {
+    color: #666;
+    font-size: 14px;
+} 
