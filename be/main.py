@@ -4,8 +4,23 @@ import asyncio
 from routers import device_router, timer_router, sensor_router, dashboard_router
 from services.mqtt_service import MQTTService
 from database import setup_indexes
+from fastapi.responses import JSONResponse
+from utils.json_encoder import CustomJSONEncoder
+import json
 
-app = FastAPI()
+# Custom JSONResponse class to handle BSON ObjectId
+class CustomJSONResponse(JSONResponse):
+    def render(self, content):
+        return json.dumps(
+            content,
+            cls=CustomJSONEncoder,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":")
+        ).encode("utf-8")
+
+app = FastAPI(default_response_class=CustomJSONResponse)
 
 # CORS middleware
 app.add_middleware(
@@ -46,4 +61,4 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)

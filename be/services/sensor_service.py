@@ -86,7 +86,6 @@ class SensorService:
             return sensors
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
     async def get_sensor_by_id(self, device_id: str) -> Dict[str, Any]:
         """
         Get the latest sensor data for a specific device
@@ -103,7 +102,7 @@ class SensorService:
             return sensor
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
+            
     async def get_sensor_history(
         self,
         device_id: str,
@@ -129,10 +128,25 @@ class SensorService:
                 limit=limit
             ).to_list(None)
             
-            return history
+            # Convert MongoDB documents to serializable dictionaries
+            # Explicitly convert ObjectId to string
+            serialized_history = []
+            for doc in history:
+                serialized_doc = {
+                    "device_id": doc.get("device_id"),
+                    "timestamp": doc.get("timestamp"),
+                    "temperature": doc.get("temperature"),
+                    "humidity": doc.get("humidity"),
+                    "light_level": doc.get("light_level"),
+                    "soil_moisture": doc.get("soil_moisture"),
+                    "location": doc.get("location"),
+                    "type": doc.get("type")
+                }
+                serialized_history.append(serialized_doc)
+            return serialized_history
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
+            
     async def get_sensor_readings(
         self,
         sensor_id: str,
@@ -149,7 +163,15 @@ class SensorService:
             sort=[("timestamp", -1)],
             limit=limit
         ).to_list(None)
-        return readings
+        
+        # Convert to serializable dictionaries
+        serialized_readings = []
+        for reading in readings:
+            # Create a new dict with just the fields we need, excluding ObjectId
+            serialized_reading = {k: v for k, v in reading.items() if k != '_id'}
+            serialized_readings.append(serialized_reading)
+        
+        return serialized_readings
 
     async def get_room_environment(
         self,

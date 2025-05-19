@@ -5,6 +5,7 @@ import { DashboardOutlined, ApiOutlined } from '@ant-design/icons';
 import DeviceManagement from './pages/DeviceManagement';
 import DeviceDetail from './pages/DeviceDetail';
 import Sensors from './pages/Sensors';
+import Dashboard from './pages/Dashboard';
 import VoiceButton from './components/VoiceButton';
 import './App.css';
 
@@ -107,7 +108,7 @@ function App() {
               }}
             >
               <Routes>
-                <Route path="/" element={<Sensors />} />
+                <Route path="/" element={<Dashboard />} />
                 <Route path="/devices" element={<DeviceManagement />} />
                 <Route path="/sensors" element={<Sensors />} />
                 <Route path="/devices/:id" element={<DeviceDetail />} />

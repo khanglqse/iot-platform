@@ -23,20 +23,3 @@ async def setup_indexes():
     await db.timers.create_index([("device_id", 1)])
     await db.timers.create_index([("is_active", 1)])
     
-    # Sensor readings indexes
-    await db.sensor_readings.create_index([("sensor_id", 1)])
-    await db.sensor_readings.create_index([("timestamp", -1)])
-    await db.sensor_readings.create_index([("type", 1)])
-    
-    # Room environment indexes
-    await db.room_environment.create_index([("room_id", 1)])
-    await db.room_environment.create_index([("timestamp", -1)])
-    
-    # Plant data indexes
-    await db.plant_data.create_index([("plant_id", 1)])
-    await db.plant_data.create_index([("timestamp", -1)])
-    
-    # Alerts indexes
-    await db.alerts.create_index([("type", 1)])
-    await db.alerts.create_index([("timestamp", -1)])
-    await db.alerts.create_index([("plant_id", 1)]) 

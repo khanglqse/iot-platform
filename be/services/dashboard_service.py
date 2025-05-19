@@ -38,7 +38,6 @@ class DashboardService:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-
     async def get_device_status_dashboard(self) -> List[Dict[str, Any]]:
         try:
             # Get latest status for all devices
@@ -51,7 +50,22 @@ class DashboardService:
                     sort=[("timestamp", -1)]
                 )
                 if latest_status:
-                    device_statuses.append(latest_status)
+                    # Convert MongoDB document to serializable dictionary
+                    serializable_status = {
+                        "id": latest_status.get("id"),
+                        "status": latest_status.get("status"),
+                        "timestamp": latest_status.get("timestamp"),
+                        "type": latest_status.get("type", "unknown"),
+                        "name": latest_status.get("name", "Unnamed Device"),
+                        "location": latest_status.get("location", "Unknown Location")
+                    }
+                    
+                    # Add any additional fields that might be present
+                    for key, value in latest_status.items():
+                        if key not in ["_id", "id", "status", "timestamp", "type", "name", "location"]:
+                            serializable_status[key] = value
+                            
+                    device_statuses.append(serializable_status)
             
             return device_statuses
         except Exception as e:

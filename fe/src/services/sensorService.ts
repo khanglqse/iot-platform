@@ -50,7 +50,27 @@ const sensorService = {
       console.error(`Error fetching sensor ${deviceId}:`, error);
       throw error;
     }
+  },
+
+  async getSensorHistory(deviceId: string, startTime?: Date, endTime?: Date): Promise<SensorData[]> {
+    try {
+      let url = `${API_BASE_URL}/sensors/${deviceId}/history`;
+      
+      const params: Record<string, string> = {};
+      if (startTime) {
+        params.start_time = startTime.toISOString();
+      }
+      if (endTime) {
+        params.end_time = endTime.toISOString();
+      }
+      
+      const response = await axios.get(url, { params });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching history for sensor ${deviceId}:`, error);
+      throw error;
+    }
   }
 };
 
-export default sensorService; 
+export default sensorService;
