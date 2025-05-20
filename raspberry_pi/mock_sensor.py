@@ -3,6 +3,7 @@ import json
 import time
 import random
 from datetime import datetime
+from datetime import timedelta
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
@@ -20,9 +21,13 @@ DEVICE_LOCATIONS = [
 ]
 
 def generate_mock_data(device_id, location):
+    # Random timestamp in the last 30 days
+    now = datetime.now()
+    random_seconds = random.randint(0, 30 * 24 * 60 * 60)
+    random_time = now - timedelta(seconds=random_seconds)
     return {
         "device_id": device_id,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": random_time.isoformat(),
         "temperature": round(random.uniform(20.0, 30.0), 2),
         "humidity": round(random.uniform(40.0, 80.0), 2),
         "light_level": round(random.uniform(0.0, 100.0), 2),
@@ -51,7 +56,7 @@ def main():
             client.publish("sensors/data", json.dumps(data))
             count += 1
             print(f"Sent data #{count}: {data}")
-            time.sleep(0.0000002)
+            time.sleep(0.002)
         print(f"Finished sending {MAX_COUNT} messages.")
 
     except KeyboardInterrupt:
