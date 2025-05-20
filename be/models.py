@@ -102,4 +102,14 @@ class SensorFeed(BaseModel):
     soil_moisture: Optional[float] = None
     location: str
     battery_level: Optional[float] = None
-    signal_strength: Optional[float] = None 
+    signal_strength: Optional[float] = None
+
+class SensorDevice(BaseModel):
+    device_id: str
+    name: str
+    location: str
+    type: str
+    sensors: List[str]
+    status: str = "active"
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Layout, Menu, message } from 'antd';
-import { DashboardOutlined, ApiOutlined } from '@ant-design/icons';
+import { DashboardOutlined, ApiOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import DeviceManagement from './pages/DeviceManagement';
 import DeviceDetail from './pages/DeviceDetail';
 import Sensors from './pages/Sensors';
 import Dashboard from './pages/Dashboard';
+import Trigger from './pages/Trigger';
 import VoiceButton from './components/VoiceButton';
 import './App.css';
 
@@ -96,6 +97,9 @@ function App() {
               <Menu.Item key="3" icon={<DashboardOutlined />}>
                 <Link to="/sensors">Sensors</Link>
               </Menu.Item>
+              <Menu.Item key="4" icon={<ThunderboltOutlined />}>
+                <Link to="/triggers">Triggers</Link>
+              </Menu.Item>
             </Menu>
           </Sider>
           <Layout style={{ padding: '0 24px 24px' }}>
@@ -111,6 +115,7 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/devices" element={<DeviceManagement />} />
                 <Route path="/sensors" element={<Sensors />} />
+                <Route path="/triggers" element={<Trigger />} />
                 <Route path="/devices/:id" element={<DeviceDetail />} />
               </Routes>
             </Content>

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
-from routers import device_router, timer_router, sensor_router, dashboard_router
+from routers import device_router, timer_router, sensor_router, dashboard_router, sensor_device_router
 from services.mqtt_service import MQTTService
 from database import setup_indexes
 from fastapi.responses import JSONResponse
@@ -36,6 +36,7 @@ app.include_router(device_router.router)
 app.include_router(timer_router.router)
 app.include_router(sensor_router.router)
 app.include_router(dashboard_router.router)
+app.include_router(sensor_device_router.router)
 
 # Initialize MQTT service
 mqtt_service = MQTTService()
