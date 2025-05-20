@@ -142,64 +142,119 @@ class MQTTService:
             device_id = trigger.get("target_device_id")
             action = trigger.get("action")
             
-            # Initialize payload with default values
-            payload = {
-                "action": action,
-                "timestamp": datetime.datetime.utcnow().isoformat()
+            # Convert device_type to lowercase for case-insensitive comparison
+            device_type_lower = device_type.lower()
+            
+            logger.info(f"Processing action: {action} for device type: {device_type} (normalized: {device_type_lower})")
+            
+            # Prepare the state update based on device type and action
+            status_update = {
+                "id": device_id,
+                "timestamp": datetime.datetime.utcnow()
             }
             
-            # Prepare the message payload based on device type and action
-            if device_type == "fan":
-                if action in ["turn_on", "turn_off"]:
-                    payload["power"] = "on" if action == "turn_on" else "off"
-                elif action == "set_speed":
-                    payload["speed"] = int(trigger.get("threshold"))
-
-            elif device_type == "ac":
-                if action in ["turn_on", "turn_off"]:
-                    payload["power"] = "on" if action == "turn_on" else "off"
-                elif action == "set_temperature":
-                    payload["temperature"] = int(trigger.get("threshold"))
-
-            elif device_type == "light":
-                if action in ["turn_on", "turn_off"]:
-                    payload["power"] = "on" if action == "turn_on" else "off"
-                elif action == "set_brightness":
-                    payload["brightness"] = int(trigger.get("threshold"))
-
-            elif device_type == "speaker":
-                if action in ["turn_on", "turn_off"]:
-                    payload["power"] = "on" if action == "turn_on" else "off"
-                elif action == "set_volume":
-                    payload["volume"] = int(trigger.get("threshold"))
-
-            elif device_type == "door":
-                if action == "lock":
-                    payload["lock_action"] = "lock"
-                elif action == "unlock":
-                    payload["lock_action"] = "unlock"
-
-            # Add trigger information to payload
+            # Initialize state payload
+            state_payload = None
             
+            # Set appropriate state values based on device type and action
+            if device_type_lower == "fan":
+                if action in ["turn_on", "turn_off"]:
+                    power_state = "on" if action == "turn_on" else "off"
+                    status_update["power"] = power_state
+                    state_payload = {"power": power_state}
+                elif action == "set_speed":
+                    speed = int(trigger.get("threshold"))
+                    status_update["speed"] = speed
+                    state_payload = {"speed": speed}
 
-            # Publish message synchronously
-            result = self.mqtt_client.publish(f"iot/devices/{device_id}", json.dumps(payload))
-            payload.update({
-                "triggered_by": {
-                    "trigger_id": trigger.get("id"),
-                    "sensor_device_id": trigger.get("sensor_device_id"),
-                    "sensor_type": trigger.get("sensor_type"),
-                    "condition": trigger.get("condition"),
-                    "threshold": trigger.get("threshold")
-                }
-            })
+            elif device_type_lower == "ac":
+                if action in ["turn_on", "turn_off"]:
+                    power_state = "on" if action == "turn_on" else "off"
+                    status_update["power"] = power_state
+                    state_payload = {"power": power_state}
+                elif action == "set_temperature":
+                    temperature = int(trigger.get("threshold"))
+                    status_update["temperature"] = temperature
+                    state_payload = {"temperature": temperature}
+
+            elif device_type_lower == "light":
+                if action in ["turn_on", "turn_off"]:
+                    power_state = "on" if action == "turn_on" else "off"
+                    status_update["power"] = power_state
+                    state_payload = {"power": power_state}
+                elif action == "set_brightness":
+                    brightness = int(trigger.get("threshold"))
+                    status_update["brightness"] = brightness
+                    state_payload = {"brightness": brightness}
+
+            elif device_type_lower == "speaker":
+                if action in ["turn_on", "turn_off"]:
+                    power_state = "on" if action == "turn_on" else "off"
+                    status_update["power"] = power_state
+                    state_payload = {"power": power_state}
+                elif action == "set_volume":
+                    volume = int(trigger.get("threshold"))
+                    status_update["volume"] = volume
+                    state_payload = {"volume": volume}
+
+            elif device_type_lower == "door":
+                if action == "lock":
+                    status_update.update({
+                        "isLocked": True,
+                        "lock_action": "lock",
+                        "lock_state": "locked"
+                    })
+                    state_payload = {
+                        "isLocked": True,
+                        "lock_action": "lock",
+                        "lock_state": "locked"
+                    }
+                elif action == "unlock":
+                    status_update.update({
+                        "isLocked": False,
+                        "lock_action": "unlock",
+                        "lock_state": "unlocked"
+                    })
+                    state_payload = {
+                        "isLocked": False,
+                        "lock_action": "unlock",
+                        "lock_state": "unlocked"
+                    }
+
+            if state_payload is None:
+                logger.error(f"No valid state payload generated for action: {action} on device type: {device_type} (normalized: {device_type_lower})")
+                return
+
+            logger.info(f"Generated state payload: {state_payload}")
+            logger.info(f"Status update: {status_update}")
+
+            # Update device status in database
+            self.sync_db.device_status.update_one(
+                {"id": device_id},
+                {"$set": status_update},
+                upsert=True
+            )
+
+            # Publish message synchronously with state payload
+            result = self.mqtt_client.publish(f"iot/devices/{device_id}", json.dumps(state_payload))
+            logger.info(f"Published MQTT message with payload: {state_payload}")
+
             if result.rc == 0:
-                # Create device log entry using synchronous client
+                # Create device log entry
                 log_entry = {
                     "device_id": device_id,
                     "timestamp": datetime.datetime.utcnow(),
                     "action": action,
-                    "details": payload,
+                    "details": {
+                        "state_update": status_update,
+                        "triggered_by": {
+                            "trigger_id": trigger.get("id"),
+                            "sensor_device_id": trigger.get("sensor_device_id"),
+                            "sensor_type": trigger.get("sensor_type"),
+                            "condition": trigger.get("condition"),
+                            "threshold": trigger.get("threshold")
+                        }
+                    },
                     "triggeredBy": "Trigger"  # Hardcoded as requested
                 }
                 self.sync_db.device_logs.insert_one(log_entry)
