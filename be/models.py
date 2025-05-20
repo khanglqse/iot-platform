@@ -113,3 +113,33 @@ class SensorDevice(BaseModel):
     status: str = "active"
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None 
+
+
+class TriggerBase(BaseModel):
+    sensor_device_id: str
+    sensor_type: str
+    condition: str
+    threshold: float
+    action: str
+    target_device_id: str
+    is_active: bool = True
+
+class TriggerCreate(TriggerBase):
+    pass
+
+class TriggerUpdate(BaseModel):
+    sensor_device_id: Optional[str] = None
+    sensor_type: Optional[str] = None
+    condition: Optional[str] = None
+    threshold: Optional[float] = None
+    action: Optional[str] = None
+    target_device_id: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class TriggerResponse(TriggerBase):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True 

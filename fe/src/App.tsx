@@ -7,6 +7,7 @@ import DeviceDetail from './pages/DeviceDetail';
 import Sensors from './pages/Sensors';
 import Dashboard from './pages/Dashboard';
 import Trigger from './pages/Trigger';
+import TriggerList from './pages/TriggerList';
 import VoiceButton from './components/VoiceButton';
 import './App.css';
 
@@ -115,7 +116,8 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/devices" element={<DeviceManagement />} />
                 <Route path="/sensors" element={<Sensors />} />
-                <Route path="/triggers" element={<Trigger />} />
+                <Route path="/triggers" element={<TriggerList />} />
+                <Route path="/trigger/create" element={<Trigger />} />
                 <Route path="/devices/:id" element={<DeviceDetail />} />
               </Routes>
             </Content>
