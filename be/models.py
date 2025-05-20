@@ -122,7 +122,8 @@ class TriggerBase(BaseModel):
     threshold: float
     action: str
     target_device_id: str
-    is_active: bool = True
+    is_active: bool = True,
+    triggered_by: str = "manual"
 
 class TriggerCreate(TriggerBase):
     pass

@@ -9,6 +9,7 @@ export interface DeviceLog {
   timestamp: string;
   action: string;
   details: any;
+  triggered_by: string;
 }
 
 export interface DeviceLogsResponse {

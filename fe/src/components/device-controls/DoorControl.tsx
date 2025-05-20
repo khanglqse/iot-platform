@@ -15,27 +15,12 @@ const DoorControl: React.FC<DoorControlProps> = ({ device, onUpdate }) => {
     onUpdate({ isLocked });
   };
 
-  const handleDoorChange = (isLocked: boolean) => {
-    onUpdate({ isLocked });
-  };
-
+  
   return (
     <Card>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Title level={4}>Điều khiển cửa</Title>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Space>
-            <HomeOutlined style={{ fontSize: '24px' }} />
-            <span>Trạng thái cửa</span>
-          </Space>
-          <Switch
-            checked={device.isLocked}
-            onChange={handleDoorChange}
-            checkedChildren="Mở"
-            unCheckedChildren="Đóng"
-          />
-        </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Space>

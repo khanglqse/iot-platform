@@ -12,6 +12,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import logging
+from services.trigger_service import TriggerService
 
 load_dotenv()
 
@@ -57,28 +58,14 @@ class MQTTService:
         # Keep async collection for API endpoints
         self.sensor_collection = db.sensor_data
         
+        self.trigger_service = TriggerService()
+        
         self._initialized = True
 
     def on_connect(self, client, userdata, flags, rc):
         logger.info(f"Connected to MQTT broker with result code {rc}")
         client.subscribe(MQTT_TOPIC)
         logger.info(f"Subscribed to {MQTT_TOPIC}")
-
-    def on_message(self, client, userdata, msg):
-        """Handle incoming MQTT messages"""
-        try:
-            # Parse the message payload
-            payload = msg.payload.decode()
-            logger.info(f"Received message: {payload}")
-            data = json.loads(payload)
-            
-            # Process data synchronously
-            self.process_sensor_data_sync(data)
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding JSON: {e}")
-        except Exception as e:
-            logger.error(f"Error processing message: {e}")
 
     def process_sensor_data_sync(self, data: Dict[str, Any]):
         """Process sensor data synchronously"""
@@ -97,8 +84,149 @@ class MQTTService:
             # Save to database synchronously
             self.save_sensor_data_sync(data)
             
+            # Process triggers synchronously
+            self.process_triggers_sync(data)
+            
         except Exception as e:
             logger.error(f"Error processing sensor data: {e}")
+
+    def process_triggers_sync(self, sensor_data: Dict[str, Any]):
+        """Process triggers synchronously"""
+        try:
+            device_id = sensor_data.get("device_id")
+            if not device_id:
+                return
+
+            # Get all active triggers using synchronous client
+            triggers_collection = self.sync_db.triggers
+            all_triggers = list(triggers_collection.find({"is_active": True}))
+            
+            device_triggers = [
+                trigger for trigger in all_triggers 
+                if trigger.get("sensor_device_id") == device_id
+            ]
+
+            # Check each trigger
+            for trigger in device_triggers:
+                # Get the sensor value that this trigger is monitoring
+                sensor_value = sensor_data.get(trigger.get("sensor_type"))
+                
+                if sensor_value is not None:
+                    # Evaluate the condition
+                    if self._evaluate_condition_sync(trigger, float(sensor_value)):
+                        # Get target device type from database
+                        device = self.sync_db.device_status.find_one({"id": trigger.get("target_device_id")})
+                        if device:
+                            # Execute the action
+                            self._execute_action_sync(trigger, device.get("type"))
+
+        except Exception as e:
+            logger.error(f"Error processing triggers synchronously: {e}")
+
+    def _evaluate_condition_sync(self, trigger: Dict[str, Any], sensor_value: float) -> bool:
+        """Evaluate if the sensor value matches the trigger condition synchronously"""
+        condition = trigger.get("condition")
+        threshold = trigger.get("threshold")
+        
+        if condition == "greater_than":
+            return sensor_value > threshold
+        elif condition == "less_than":
+            return sensor_value < threshold
+        elif condition == "equals":
+            return abs(sensor_value - threshold) < 0.001
+        return False
+
+    def _execute_action_sync(self, trigger: Dict[str, Any], device_type: str):
+        """Execute the trigger action synchronously"""
+        try:
+            device_id = trigger.get("target_device_id")
+            action = trigger.get("action")
+            
+            # Initialize payload with default values
+            payload = {
+                "action": action,
+                "timestamp": datetime.datetime.utcnow().isoformat()
+            }
+            
+            # Prepare the message payload based on device type and action
+            if device_type == "fan":
+                if action in ["turn_on", "turn_off"]:
+                    payload["power"] = "on" if action == "turn_on" else "off"
+                elif action == "set_speed":
+                    payload["speed"] = int(trigger.get("threshold"))
+
+            elif device_type == "ac":
+                if action in ["turn_on", "turn_off"]:
+                    payload["power"] = "on" if action == "turn_on" else "off"
+                elif action == "set_temperature":
+                    payload["temperature"] = int(trigger.get("threshold"))
+
+            elif device_type == "light":
+                if action in ["turn_on", "turn_off"]:
+                    payload["power"] = "on" if action == "turn_on" else "off"
+                elif action == "set_brightness":
+                    payload["brightness"] = int(trigger.get("threshold"))
+
+            elif device_type == "speaker":
+                if action in ["turn_on", "turn_off"]:
+                    payload["power"] = "on" if action == "turn_on" else "off"
+                elif action == "set_volume":
+                    payload["volume"] = int(trigger.get("threshold"))
+
+            elif device_type == "door":
+                if action == "lock":
+                    payload["lock_action"] = "lock"
+                elif action == "unlock":
+                    payload["lock_action"] = "unlock"
+
+            # Add trigger information to payload
+            
+
+            # Publish message synchronously
+            result = self.mqtt_client.publish(f"iot/devices/{device_id}", json.dumps(payload))
+            payload.update({
+                "triggered_by": {
+                    "trigger_id": trigger.get("id"),
+                    "sensor_device_id": trigger.get("sensor_device_id"),
+                    "sensor_type": trigger.get("sensor_type"),
+                    "condition": trigger.get("condition"),
+                    "threshold": trigger.get("threshold")
+                }
+            })
+            if result.rc == 0:
+                # Create device log entry using synchronous client
+                log_entry = {
+                    "device_id": device_id,
+                    "timestamp": datetime.datetime.utcnow(),
+                    "action": action,
+                    "details": payload,
+                    "triggeredBy": "Trigger"  # Hardcoded as requested
+                }
+                self.sync_db.device_logs.insert_one(log_entry)
+                print("log_entry", log_entry)
+                logger.info(f"Created device log for action {action} on device {device_id}")
+                logger.info(f"Trigger {trigger.get('id')} executed: {trigger.get('sensor_type')} {trigger.get('condition')} {trigger.get('threshold')}")
+            else:
+                logger.error(f"Failed to execute action {action} on device {device_id}")
+
+        except Exception as e:
+            logger.error(f"Error executing action synchronously: {e}")
+
+    def on_message(self, client, userdata, msg):
+        """Handle incoming MQTT messages"""
+        try:
+            # Parse the payload
+            payload = msg.payload.decode()
+            logger.info(f"Received message: {payload}")
+            data = json.loads(payload)
+            
+            # Process data synchronously
+            self.process_sensor_data_sync(data)
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding JSON: {e}")
+        except Exception as e:
+            logger.error(f"Error processing message: {e}")
 
     def save_sensor_data_sync(self, data: Dict[str, Any]) -> str:
         """Save sensor data to database synchronously"""
@@ -185,6 +313,123 @@ class MQTTService:
         except Exception as e:
             logger.error(f"Error publishing message: {e}")
             return False
+
+    async def _evaluate_condition(self, trigger: Dict[str, Any], sensor_value: float) -> bool:
+        """Evaluate if the sensor value matches the trigger condition"""
+        if trigger["condition"] == "greater_than":
+            return sensor_value > trigger["threshold"]
+        elif trigger["condition"] == "less_than":
+            return sensor_value < trigger["threshold"]
+        elif trigger["condition"] == "equals":
+            return abs(sensor_value - trigger["threshold"]) < 0.001
+        return False
+
+    async def _execute_action(self, trigger: Dict[str, Any], device_type: str):
+        """Execute the trigger action by publishing to MQTT topics"""
+        device_id = trigger["target_device_id"]
+        action = trigger["action"]
+        
+        # Prepare the message payload based on device type and action
+        if device_type == "fan":
+            if action in ["turn_on", "turn_off"]:
+                payload = {"power": "on" if action == "turn_on" else "off"}
+            elif action == "set_speed":
+                payload = {"speed": int(trigger["threshold"])}
+
+        elif device_type == "ac":
+            if action in ["turn_on", "turn_off"]:
+                payload = {"power": "on" if action == "turn_on" else "off"}
+            elif action == "set_temperature":
+                payload = {"temperature": int(trigger["threshold"])}
+
+        elif device_type == "light":
+            if action in ["turn_on", "turn_off"]:
+                payload = {"power": "on" if action == "turn_on" else "off"}
+            elif action == "set_brightness":
+                payload = {"brightness": int(trigger["threshold"])}
+
+        elif device_type == "speaker":
+            if action in ["turn_on", "turn_off"]:
+                payload = {"power": "on" if action == "turn_on" else "off"}
+            elif action == "set_volume":
+                payload = {"volume": int(trigger["threshold"])}
+
+        elif device_type == "door":
+            if action == "lock":
+                payload = {"lock_action": "lock"}
+            elif action == "unlock":
+                payload = {"lock_action": "unlock"}
+
+        # Add trigger information to payload
+        payload.update({
+            "triggered_by": {
+                "trigger_id": trigger["id"],
+                "sensor_device_id": trigger["sensor_device_id"],
+                "sensor_type": trigger["sensor_type"],
+                "condition": trigger["condition"],
+                "threshold": trigger["threshold"]
+            },
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        })
+
+        # Publish message using the same topic format as device_service
+        success = await self.publish_message(f"iot/devices/{device_id}", payload)
+        
+        if success:
+            # Create device log entry using synchronous client
+            log_entry = {
+                "device_id": device_id,
+                "timestamp": datetime.datetime.utcnow(),
+                "action": action,
+                "details": payload,
+                "triggeredBy": "Trigger"  # Hardcoded as requested
+            }
+            self.sync_db.device_logs.insert_one(log_entry)
+            print("log_entry", log_entry)
+            logger.info(f"Created device log for action {action} on device {device_id}")
+            logger.info(f"Trigger {trigger['id']} executed: {trigger['sensor_type']} {trigger['condition']} {trigger['threshold']}")
+        else:
+            logger.error(f"Failed to execute action {action} on device {device_id}")
+
+    async def process_triggers(self, sensor_data: Dict[str, Any]):
+        """Process all triggers for the received sensor data"""
+        device_id = sensor_data.get("device_id")
+        if not device_id:
+            return
+
+        # Get all active triggers for this device
+        all_triggers = await self.trigger_service.get_triggers()
+        device_triggers = [
+            trigger for trigger in all_triggers 
+            if trigger.sensor_device_id == device_id  # Match exactly with device_id from sensor
+            and trigger.is_active
+        ]
+
+        # Check each trigger
+        for trigger in device_triggers:
+            # Get the sensor value that this trigger is monitoring
+            sensor_value = sensor_data.get(trigger.sensor_type)
+            
+            if sensor_value is not None:
+                # Convert trigger to dict for easier handling
+                trigger_dict = {
+                    "id": trigger.id,
+                    "sensor_device_id": trigger.sensor_device_id,
+                    "sensor_type": trigger.sensor_type,
+                    "condition": trigger.condition,
+                    "threshold": trigger.threshold,
+                    "action": trigger.action,
+                    "target_device_id": trigger.target_device_id,
+                    "is_active": trigger.is_active
+                }
+
+                # Evaluate the condition
+                if await self._evaluate_condition(trigger_dict, float(sensor_value)):
+                    # Get target device type from database
+                    device = await db.devices.find_one({"id": trigger.target_device_id})
+                    if device:
+                        # Execute the action
+                        await self._execute_action(trigger_dict, device["type"])
 
     def start(self):
         """Start MQTT client"""
