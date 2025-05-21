@@ -125,6 +125,15 @@ mock_devices = [
         'speed': 2,
         'mode': 'sleep',
         'isOn': True
+    },
+    {
+        'id': '11',
+        'name': 'LCD Cửa chính',
+        'type': 'LCD',
+        'status': 'online',
+        'location': 'Cửa ra vào',
+        'lastSeen': datetime.now().isoformat(),
+        'isOn': True
     }
 ]
 

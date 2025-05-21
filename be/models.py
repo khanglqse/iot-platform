@@ -120,10 +120,11 @@ class TriggerBase(BaseModel):
     sensor_type: str
     condition: str
     threshold: float
-    action: str
+    action: Optional[str] = None
     target_device_id: str
-    is_active: bool = True,
+    is_active: bool = True
     triggered_by: str = "manual"
+    display_text: Optional[str] = None
 
 class TriggerCreate(TriggerBase):
     pass
@@ -136,6 +137,7 @@ class TriggerUpdate(BaseModel):
     action: Optional[str] = None
     target_device_id: Optional[str] = None
     is_active: Optional[bool] = None
+    display_text: Optional[str] = None
 
 class TriggerResponse(TriggerBase):
     id: str

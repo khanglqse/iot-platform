@@ -141,6 +141,7 @@ class MQTTService:
         try:
             device_id = trigger.get("target_device_id")
             action = trigger.get("action")
+            display_text = trigger.get("display_text")
             
             # Convert device_type to lowercase for case-insensitive comparison
             device_type_lower = device_type.lower()
@@ -221,6 +222,20 @@ class MQTTService:
                         "lock_state": "unlocked"
                     }
 
+            elif device_type_lower == "lcd":
+               
+                display_text = trigger.get("display_text", "")
+                # Ensure text is not longer than 16 characters
+                display_text = display_text[:16]
+                
+                status_update.update({
+                    "display_text": display_text,
+                    "last_updated": datetime.datetime.utcnow().isoformat()
+                })
+                state_payload = {
+                    "display_text": display_text
+                }
+            
             if state_payload is None:
                 logger.error(f"No valid state payload generated for action: {action} on device type: {device_type} (normalized: {device_type_lower})")
                 return

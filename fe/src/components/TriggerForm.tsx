@@ -14,6 +14,7 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
   const [form] = Form.useForm();
   const { sensorDevices, devices } = useDevices();
   const [selectedDeviceId, setSelectedDeviceId] = React.useState<string>(trigger?.sensor_device_id || '');
+  const [selectedTargetDeviceId, setSelectedTargetDeviceId] = React.useState<string>(trigger?.target_device_id || '');
 
   // Get available sensors for selected device
   const availableSensors = React.useMemo(() => {
@@ -34,6 +35,8 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
         return ['turn_on', 'turn_off', 'set_brightness'];
       case 'door':
         return ['lock', 'unlock'];
+      case 'lcd':
+        return ['display_text'];
       default:
         return ['turn_on', 'turn_off'];
     }
@@ -42,6 +45,18 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
   const handleDeviceChange = (value: string) => {
     setSelectedDeviceId(value);
     form.setFieldsValue({ sensor_type: undefined });
+  };
+
+  const handleTargetDeviceChange = (value: string) => {
+    setSelectedTargetDeviceId(value);
+    const device = devices.find(d => d.id === value);
+    if (device) {
+      form.setFieldsValue({ action: undefined });
+      // If device is LCD, automatically set action to display_text
+      if (device.type.toLowerCase() === 'lcd') {
+        form.setFieldsValue({ action: 'display_text' });
+      }
+    }
   };
 
   const onFinish = async (values: any) => {
@@ -63,15 +78,22 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
     if (trigger) {
       form.setFieldsValue(trigger);
       setSelectedDeviceId(trigger.sensor_device_id);
+      setSelectedTargetDeviceId(trigger.target_device_id);
     }
   }, [trigger, form]);
+
+  // Check if selected target device is LCD
+  const isLCDDevice = React.useMemo(() => {
+    const device = devices.find(d => d.id === selectedTargetDeviceId);
+    return device?.type.toLowerCase() === 'lcd';
+  }, [selectedTargetDeviceId, devices]);
 
   return (
     <Form
       form={form}
       layout="vertical"
       onFinish={onFinish}
-      initialValues={trigger || { is_active: true }}
+      initialValues={trigger ? { ...trigger, is_active: Boolean(trigger.is_active) } : { is_active: true }}
     >
       <Form.Item
         name="sensor_device_id"
@@ -134,12 +156,7 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
       >
         <Select
           placeholder="Select target device"
-          onChange={(value) => {
-            const device = devices.find(d => d.id === value);
-            if (device) {
-              form.setFieldsValue({ action: undefined });
-            }
-          }}
+          onChange={handleTargetDeviceChange}
         >
           {devices.map(device => (
             <Option key={device.id} value={device.id}>
@@ -149,26 +166,41 @@ const TriggerForm: React.FC<TriggerFormProps> = ({ trigger, onSuccess }) => {
         </Select>
       </Form.Item>
 
-      <Form.Item
-        name="action"
-        label="Action"
-        rules={[{ required: true, message: 'Please select an action' }]}
-      >
-        <Select
-          placeholder="Select action"
-          disabled={!form.getFieldValue('target_device_id')}
+      {!isLCDDevice && (
+        <Form.Item
+          name="action"
+          label="Action"
+          rules={[{ required: true, message: 'Please select an action' }]}
         >
-          {form.getFieldValue('target_device_id') &&
-            getAvailableActions(
-              devices.find(d => d.id === form.getFieldValue('target_device_id'))?.type || ''
-            ).map(action => (
-              <Option key={action} value={action}>
-                {action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-              </Option>
-            ))
-          }
-        </Select>
-      </Form.Item>
+          <Select
+            placeholder="Select action"
+            disabled={!selectedTargetDeviceId}
+          >
+            {selectedTargetDeviceId &&
+              getAvailableActions(
+                devices.find(d => d.id === selectedTargetDeviceId)?.type || ''
+              ).map(action => (
+                <Option key={action} value={action}>
+                  {action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                </Option>
+              ))
+            }
+          </Select>
+        </Form.Item>
+      )}
+
+      {isLCDDevice && (
+        <Form.Item
+          name="display_text"
+          label="Display Text"
+          rules={[
+            { required: true, message: 'Please input text to display' },
+            { max: 16, message: 'Text cannot be longer than 16 characters' }
+          ]}
+        >
+          <Input maxLength={16} showCount />
+        </Form.Item>
+      )}
 
       <Form.Item>
         <Button type="primary" htmlType="submit">

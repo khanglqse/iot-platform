@@ -8,7 +8,7 @@ from datetime import timedelta
 # MQTT Configuration
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
-MAX_COUNT = 1_000_000
+MAX_COUNT = 1000
 
 DEVICE_LOCATIONS = [
     {"device_id": "raspberry_pi_001", "location": "living_room"},
@@ -28,7 +28,7 @@ def generate_mock_data(device_id, location):
     return {
         "device_id": device_id,
         "timestamp": random_time.isoformat(),
-        "temperature": round(random.uniform(20.0, 30.0), 2),
+        "temperature": round(random.uniform(00.0, 90.0), 2),
         "humidity": round(random.uniform(40.0, 80.0), 2),
         "light_level": round(random.uniform(0.0, 100.0), 2),
         "soil_moisture": round(random.uniform(0.0, 100.0), 2),

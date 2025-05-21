@@ -93,7 +93,13 @@ const TriggerList: React.FC = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      render: (action: string) => action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+      render: (action: string | null, record: Trigger) => {
+        const device = devices.find(d => d.id === record.target_device_id);
+        if (device?.type.toLowerCase() === 'lcd') {
+          return 'Display Text';
+        }
+        return action ? action.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : '';
+      }
     },
     {
       title: 'Active',

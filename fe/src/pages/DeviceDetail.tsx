@@ -128,9 +128,11 @@ const DeviceDetail: React.FC = () => {
       key: 'action',
       render: (action: string) => (
         <Tag color={
+          action ?
           action.includes('on') ? 'green' : 
           action.includes('off') ? 'red' :
           action.includes('update') ? 'blue' : 'default'
+          : 'default'
         }>
           {action}
         </Tag>
