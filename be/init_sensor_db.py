@@ -17,7 +17,7 @@ sensor_collection = db['sensor_data']
 # Configuration
 TOTAL_RECORDS = 10000000 # 2 million records
 BATCH_SIZE = 10000  # Insert records in batches for better performance
-MONTHS_RANGE = 6
+MONTHS_RANGE = 18
 
 DEVICE_LOCATIONS = [
     {"device_id": "raspberry_pi_001", "location": "living_room", "type": "environment"},

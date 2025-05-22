@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Modal, message, Switch } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { Trigger, getTriggers, deleteTrigger, updateTrigger } from '../services/triggerService';
-import TriggerForm from '../components/TriggerForm';
 import { useDevices } from '../hooks/useDevices';
-
+import TriggerForm from '../components/TriggerForm';
 const TriggerList: React.FC = () => {
   const [triggers, setTriggers] = useState<Trigger[]>([]);
   const [loading, setLoading] = useState(false);

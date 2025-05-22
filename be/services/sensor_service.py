@@ -114,6 +114,67 @@ class SensorService:
         Get historical sensor data for a specific device
         """
         try:
+            # First try to get summary data
+            summary_query = {"device_id": device_id}
+            
+            if start_time and end_time:
+                summary_query["date"] = {
+                    "$gte": start_time,
+                    "$lte": end_time
+                }
+            
+            summary_data = await db.sensor_summary.find(
+                summary_query,
+                sort=[("date", -1)],
+                limit=limit
+            ).to_list(None)
+
+            if summary_data:
+                # Convert summary data to the expected format
+                serialized_summary = []
+                for doc in summary_data:
+                    serialized_doc = {
+                        "device_id": doc.get("device_id"),
+                        "timestamp": doc.get("date"),
+                        "temperature": doc.get("avg_temperature"),
+                        "humidity": doc.get("avg_humidity"),
+                        "light_level": doc.get("avg_light_level"),
+                        "soil_moisture": doc.get("avg_soil_moisture"),
+                        "location": doc.get("location"),
+                        "type": "summary",
+                        "stats": {
+                            "temperature": {
+                                "min": doc.get("min_temperature"),
+                                "max": doc.get("max_temperature"),
+                                "avg": doc.get("avg_temperature")
+                            },
+                            "humidity": {
+                                "min": doc.get("min_humidity"),
+                                "max": doc.get("max_humidity"),
+                                "avg": doc.get("avg_humidity")
+                            },
+                            "light_level": {
+                                "min": doc.get("min_light_level"),
+                                "max": doc.get("max_light_level"),
+                                "avg": doc.get("avg_light_level")
+                            },
+                            "soil_moisture": {
+                                "min": doc.get("min_soil_moisture"),
+                                "max": doc.get("max_soil_moisture"),
+                                "avg": doc.get("avg_soil_moisture")
+                            },
+                            "battery": {
+                                "min": doc.get("min_battery"),
+                                "max": doc.get("max_battery"),
+                                "avg": doc.get("avg_battery")
+                            },
+                            "record_count": doc.get("record_count")
+                        }
+                    }
+                    serialized_summary.append(serialized_doc)
+                return serialized_summary
+
+            # Fallback to raw sensor data if no summary data is available
             query = {"device_id": device_id}
             
             if start_time and end_time:
@@ -129,7 +190,6 @@ class SensorService:
             ).to_list(None)
             
             # Convert MongoDB documents to serializable dictionaries
-            # Explicitly convert ObjectId to string
             serialized_history = []
             for doc in history:
                 serialized_doc = {

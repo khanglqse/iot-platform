@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, Row, Col, DatePicker, Empty, Spin } from 'antd';
-import { Line } from '@ant-design/plots';
-import { SensorData } from '../types/sensor';
+import { Line, LineConfig } from '@ant-design/plots';
+import { SensorData } from '../services/sensorService';
 import dayjs from 'dayjs';
-import type { DatePickerProps, RangePickerProps } from 'antd/es/date-picker';
+import type { RangePickerProps } from 'antd/es/date-picker';
 
 const { RangePicker } = DatePicker;
 
@@ -13,25 +13,71 @@ interface SensorHistoryChartProps {
   onDateRangeChange: (dates: [Date | null, Date | null]) => void;
 }
 
+type MetricType = 'temperature' | 'humidity' | 'light_level' | 'soil_moisture' | 'battery';
+
+interface ChartDataPoint {
+  timestamp: string;
+  type: string;
+  value: number;
+}
+
 const SensorHistoryChart: React.FC<SensorHistoryChartProps> = ({ data, loading, onDateRangeChange }) => {
-  const formatData = (data: SensorData[], field: keyof SensorData) => {
-    return data.map(item => ({
-      timestamp: new Date(item.timestamp).toLocaleString(),
-      value: item[field],
-    }));
+  const formatData = (data: SensorData[], metric: MetricType): ChartDataPoint[] => {
+    return data.flatMap(item => {
+      if (!item.stats) return [];
+      
+      const stats = item.stats[metric];
+      if (!stats) return [];
+
+      return [
+        {
+          timestamp: new Date(item.timestamp).toISOString(),
+          type: 'Min',
+          value: stats.min,
+        },
+        {
+          timestamp: new Date(item.timestamp).toISOString(),
+          type: 'Max',
+          value: stats.max,
+        },
+        {
+          timestamp: new Date(item.timestamp).toISOString(),
+          type: 'Average',
+          value: stats.avg,
+        },
+      ];
+    });
   };
 
-  const commonConfig = {
+  const commonConfig: Partial<LineConfig> = {
     xField: 'timestamp',
     yField: 'value',
+    seriesField: 'type',
+    xAxis: {
+      type: 'time',
+      title: {
+        text: 'Time',
+      },
+    },
+    yAxis: {
+      title: {
+        text: 'Value',
+      },
+    },
+    legend: {
+      position: 'top',
+    },
     smooth: true,
     point: {
-      size: 5,
+      size: 3,
       shape: 'circle',
     },
     tooltip: {
       formatter: (datum: any) => {
-        return { name: 'Value', value: datum.value };
+        return {
+          name: datum.type,
+          value: datum.value.toFixed(2),
+        };
       },
     },
   };
@@ -65,6 +111,20 @@ const SensorHistoryChart: React.FC<SensorHistoryChartProps> = ({ data, loading, 
     />
   );
 
+  const renderChart = (title: string, metric: MetricType, unit: string) => (
+    <Col xs={24} sm={24} md={12} key={metric}>
+      <Card title={`${title} (${unit})`} bordered={false}>
+        {data.length > 0 ? (
+          <Line 
+            {...commonConfig} 
+            data={formatData(data, metric)}
+            color={['#ff4d4f', '#52c41a', '#1890ff']} // Red for min, Green for max, Blue for avg
+          />
+        ) : noDataContent}
+      </Card>
+    </Col>
+  );
+
   return (
     <div className="sensor-history-chart">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -72,37 +132,15 @@ const SensorHistoryChart: React.FC<SensorHistoryChartProps> = ({ data, loading, 
         <RangePicker 
           onChange={handleDateRangeChange}
           disabledDate={disabledDate}
+          showTime
         />
       </div>
       <Row gutter={[24, 24]}>
-        <Col xs={24} sm={24} md={12}>
-          <Card title="Temperature (°C)" bordered={false}>
-            {data.length > 0 ? (
-              <Line {...commonConfig} data={formatData(data, 'temperature' as keyof SensorData)} />
-            ) : noDataContent}
-          </Card>
-        </Col>
-        <Col xs={24} sm={24} md={12}>
-          <Card title="Humidity (%)" bordered={false}>
-            {data.length > 0 ? (
-              <Line {...commonConfig} data={formatData(data, 'humidity' as keyof SensorData)} />
-            ) : noDataContent}
-          </Card>
-        </Col>
-        <Col xs={24} sm={24} md={12}>
-          <Card title="Light Level (lux)" bordered={false}>
-            {data.length > 0 ? (
-              <Line {...commonConfig} data={formatData(data, 'light_level' as keyof SensorData)} />
-            ) : noDataContent}
-          </Card>
-        </Col>
-        <Col xs={24} sm={24} md={12}>
-          <Card title="Soil Moisture (%)" bordered={false}>
-            {data.length > 0 ? (
-              <Line {...commonConfig} data={formatData(data, 'soil_moisture' as keyof SensorData)} />
-            ) : noDataContent}
-          </Card>
-        </Col>
+        {renderChart('Temperature', 'temperature', '°C')}
+        {renderChart('Humidity', 'humidity', '%')}
+        {renderChart('Light Level', 'light_level', 'lux')}
+        {renderChart('Soil Moisture', 'soil_moisture', '%')}
+        {renderChart('Battery', 'battery', '%')}
       </Row>
     </div>
   );

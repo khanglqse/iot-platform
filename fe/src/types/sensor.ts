@@ -4,9 +4,37 @@ export interface SensorData {
     temperature: number;
     humidity: number;
     light_level: number;
-    soil_moisture: number;
+    soil_moisture?: number;
     location: string;
     type: string;
+    stats?: {
+        temperature: {
+            min: number;
+            max: number;
+            avg: number;
+        };
+        humidity: {
+            min: number;
+            max: number;
+            avg: number;
+        };
+        light_level: {
+            min: number;
+            max: number;
+            avg: number;
+        };
+        soil_moisture: {
+            min: number;
+            max: number;
+            avg: number;
+        };
+        battery: {
+            min: number;
+            max: number;
+            avg: number;
+        };
+        record_count: number;
+    };
 }
 
 export interface LocationData {
