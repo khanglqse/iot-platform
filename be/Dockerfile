@@ -5,12 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY . .            # copy hết code trước
+
+COPY start.sh .     # copy lại file start.sh sau cùng
+RUN chmod +x start.sh
 
 EXPOSE 8000
 
-# Create a startup script
-COPY start.sh .
-RUN chmod +x start.sh
-
-CMD ["./start.sh"] 
+CMD ["./start.sh"]
