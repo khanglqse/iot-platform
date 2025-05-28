@@ -5,7 +5,6 @@ services:
     build: 
       context: ./be
       dockerfile: Dockerfile
-    image: khangfu/backend:latest
     ports:
       - "8000:8000"
     environment:
@@ -25,7 +24,6 @@ services:
     build:
       context: ./fe
       dockerfile: Dockerfile
-    image: khangfu/frontend:latest
     ports:
       - "3000:3000"
     environment:
@@ -44,7 +42,6 @@ services:
   #   build:
   #     context: ./rasa
   #     dockerfile: Dockerfile
-  #   image: khangfu/rasa:latest
   #   ports:
   #     - "5005:5005"
   #   volumes:
@@ -57,7 +54,6 @@ services:
   #     - iot-network
 
   mongodb:
-    image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
@@ -66,7 +62,6 @@ services:
       - iot-network
 
   mqtt:
-    image: eclipse-mosquitto:latest
     ports:
       - "1883:1883"
       - "9001:9001"
@@ -79,7 +74,6 @@ services:
 
   # action-server:
   #   build: ./rasa
-  #   image: khangfu/action-server:latest
   #   ports:
   #     - "5055:5055"
   #   volumes:
