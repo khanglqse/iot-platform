@@ -160,9 +160,9 @@ class MQTTService:
             # Set appropriate state values based on device type and action
             if device_type_lower == "fan":
                 if action in ["turn_on", "turn_off"]:
-                    power_state = "on" if action == "turn_on" else "off"
-                    status_update["power"] = power_state
-                    state_payload = {"power": power_state}
+                    power_state = True if action == "turn_on" else False
+                    status_update["isOn"] = power_state
+                    state_payload = {"isOn": power_state}
                 elif action == "set_speed":
                     speed = int(trigger.get("threshold"))
                     status_update["speed"] = speed
@@ -170,9 +170,9 @@ class MQTTService:
 
             elif device_type_lower == "ac":
                 if action in ["turn_on", "turn_off"]:
-                    power_state = "on" if action == "turn_on" else "off"
-                    status_update["power"] = power_state
-                    state_payload = {"power": power_state}
+                    power_state = True if action == "turn_on" else False
+                    status_update["isOn"] = power_state
+                    state_payload = {"isOn": power_state}
                 elif action == "set_temperature":
                     temperature = int(trigger.get("threshold"))
                     status_update["temperature"] = temperature
@@ -180,9 +180,9 @@ class MQTTService:
 
             elif device_type_lower == "light":
                 if action in ["turn_on", "turn_off"]:
-                    power_state = "on" if action == "turn_on" else "off"
-                    status_update["power"] = power_state
-                    state_payload = {"power": power_state}
+                    power_state = True if action == "turn_on" else False
+                    status_update["isOn"] = power_state
+                    state_payload = {"isOn": power_state}
                 elif action == "set_brightness":
                     brightness = int(trigger.get("threshold"))
                     status_update["brightness"] = brightness
@@ -190,9 +190,9 @@ class MQTTService:
 
             elif device_type_lower == "speaker":
                 if action in ["turn_on", "turn_off"]:
-                    power_state = "on" if action == "turn_on" else "off"
-                    status_update["power"] = power_state
-                    state_payload = {"power": power_state}
+                    power_state = True if action == "turn_on" else False
+                    status_update["isOn"] = power_state
+                    state_payload = {"isOn": power_state}
                 elif action == "set_volume":
                     volume = int(trigger.get("threshold"))
                     status_update["volume"] = volume
