@@ -4,7 +4,7 @@ services:
   backend:
     build: 
       context: ./be
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prd
     ports:
       - "8000:8000"
     environment:
