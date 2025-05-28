@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"3cca017f65e343d28e176088bbfc0cc2","collectionName":"sensor_summary","type":"collection"}

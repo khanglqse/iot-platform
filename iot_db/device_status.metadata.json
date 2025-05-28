@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"id":{"$numberInt":"1"}},"name":"id_1"},{"v":{"$numberInt":"2"},"key":{"timestamp":{"$numberInt":"-1"}},"name":"timestamp_-1"}],"uuid":"c42a532d2dcd41ccb445e783667307b1","collectionName":"device_status","type":"collection"}
