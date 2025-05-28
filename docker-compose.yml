@@ -4,7 +4,7 @@ services:
   backend:
     build: 
       context: ./be
-      dockerfile: Dockerfile.prd
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -23,7 +23,7 @@ services:
   frontend:
     build:
       context: ./fe
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prd
     ports:
       - "3000:3000"
     environment:
