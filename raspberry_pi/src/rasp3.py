@@ -5,14 +5,20 @@ import paho.mqtt.client as mqtt
 import board
 import digitalio
 import adafruit_character_lcd.character_lcd as characterlcd
-
+import subprocess
+import pigpio 
 # Thiết lập GPIO
 GPIO.setmode(GPIO.BCM)
-
+pi = pigpio.pi()
 # Buzzer
 BUZZER_PIN = 5
 GPIO.setup(BUZZER_PIN, GPIO.OUT)
 GPIO.output(BUZZER_PIN, False)
+
+# IR Transmitter pin
+IR_PIN = 17
+GPIO.setup(IR_PIN, GPIO.OUT)
+GPIO.output(IR_PIN, False)
 
 # Stepper pins (6, 13, 19, 26)
 StepPins = [6, 13, 19, 26]
@@ -47,6 +53,9 @@ lcd = characterlcd.Character_LCD_Mono(
     lcd_columns, lcd_rows
 )
 
+# Biến lưu process phát nhạc hiện tại
+current_music_process = None
+
 # Hàm quay stepper
 def stepper_rotate(rotations=1, delay=0.002):
     seq = [
@@ -66,7 +75,6 @@ def stepper_rotate(rotations=1, delay=0.002):
             for pin in range(4):
                 GPIO.output(StepPins[pin], step[pin])
             time.sleep(delay)
-    # Tắt tất cả coil sau khi quay
     for pin in StepPins:
         GPIO.output(pin, False)
 
@@ -91,14 +99,107 @@ def led_rgb_off():
     GPIO.output(LED_G, False)
     GPIO.output(LED_B, False)
 
+# Phát nhạc từ YouTube
+def play_music(search_query):
+    global current_music_process
+
+    try:
+        # Nếu đang có bài phát → dừng trước
+        if current_music_process is not None:
+            current_music_process.terminate()
+            current_music_process = None
+            print("Đã dừng bài nhạc cũ.")
+
+        # Lấy stream URL từ YouTube bằng yt-dlp
+        cmd_get_url = [
+    "python3", "-m", "yt_dlp",
+    f"ytsearch1:{search_query}",
+    "-f", "bestaudio",
+    "--get-url"
+]
+        result = subprocess.run(cmd_get_url, capture_output=True, text=True)
+        stream_url = result.stdout.strip()
+
+        if stream_url:
+            print(f"Đang phát: {search_query}")
+            # Phát nhạc bằng mpv (audio only)
+            current_music_process = subprocess.Popen(["mpv", "--no-video", stream_url])
+        else:
+            print("Không tìm thấy URL video.")
+    except Exception as e:
+        print(f"Lỗi khi phát nhạc: {e}")
+
+def nec_send(pi, gpio, data):
+    """
+    Gửi mã NEC 32-bit trên gpio bằng pigpio.
+
+    data: int mã NEC (ví dụ 0x20DF10EF)
+    """
+    MARK = 560  # microseconds bật sóng 38kHz
+    SPACE = 560  # microseconds tắt sóng
+
+    def send_mark(microseconds):
+        pi.wave_add_generic([pigpio.pulse(1 << gpio, 0, microseconds)])
+    
+    def send_space(microseconds):
+        pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, microseconds)])
+
+    # Tạo sóng 38kHz bật tắt (khoảng 26us chu kỳ, 50% duty cycle)
+    def carrier(microseconds):
+        cycles = int(microseconds / 26)
+        pulses = []
+        for _ in range(cycles):
+            pulses.append(pigpio.pulse(1 << gpio, 0, 13))
+            pulses.append(pigpio.pulse(0, 1 << gpio, 13))
+        pi.wave_add_generic(pulses)
+
+    pi.wave_clear()
+
+    # Lead code NEC: MARK 9ms + SPACE 4.5ms
+    carrier(9000)
+    pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, 4500)])
+
+    # Gửi 32 bit data LSB first
+    for i in range(32):
+        bit = (data >> i) & 1
+        carrier(MARK)
+        if bit == 1:
+            pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, SPACE * 3)])  # 1 = 1.69ms space
+        else:
+            pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, SPACE)])  # 0 = 560us space
+
+    # Kết thúc bằng MARK
+    carrier(MARK)
+
+    wave_id = pi.wave_create()
+    if wave_id >= 0:
+        pi.wave_send_once(wave_id)
+        while pi.wave_tx_busy():
+            time.sleep(0.001)
+        pi.wave_delete(wave_id)
+    else:
+        print("Tạo sóng IR lỗi!")
+
+def send_ir_code(ir_code):
+    try:
+        # Chuyển hex string thành int
+        code_int = int(ir_code, 16)
+        print(f"Phát mã IR: {ir_code} (int: {code_int})")
+        nec_send(pi, IR_PIN, code_int)
+    except Exception as e:
+        print(f"Lỗi khi phát IR: {e}")
+
+
 # Callback MQTT khi nhận message
 def on_message(client, userdata, message):
+    global current_music_process
+
     topic = message.topic
     payload = message.payload.decode("utf-8")
     print(f"Topic: {topic}, Payload: {payload}")
 
     device_id = topic.split("/")[-1]
-    
+
     try:
         data = json.loads(payload)
     except Exception as e:
@@ -116,9 +217,6 @@ def on_message(client, userdata, message):
     elif device_id == "21":  # Stepper
         if data.get("isOn"):
             stepper_rotate(3)
-        else:
-            # Stepper không có lệnh tắt, nên chỉ dừng nếu cần
-            pass
 
     elif device_id == "22":  # LCD
         if data.get("isOn") is False:
@@ -141,6 +239,28 @@ def on_message(client, userdata, message):
         else:
             led_rgb_off()
 
+    elif device_id == "24":  # Speaker
+        if data.get("isOn") is False:
+            if current_music_process is not None:
+                current_music_process.terminate()
+                current_music_process = None
+                print("Đã dừng nhạc.")
+            else:
+                print("Không có nhạc đang phát.")
+        else:
+            search_query = data.get("search")
+            if search_query:
+                play_music(search_query)
+            else:
+                print("Thiếu thông tin 'search' trong payload!")
+
+    elif device_id == "25":  # IR module
+        ir_code = data.get("irCode")
+        if ir_code:
+            send_ir_code(ir_code)
+        else:
+            print("Thiếu thông tin 'irCode' trong payload!")
+
 # Khi kết nối MQTT
 def on_connect(client, userdata, flags, rc):
     print("Đã kết nối MQTT với code: " + str(rc))
@@ -161,3 +281,5 @@ try:
 except KeyboardInterrupt:
     print("Dừng chương trình.")
     GPIO.cleanup()
+    if current_music_process is not None:
+        current_music_process.terminate()

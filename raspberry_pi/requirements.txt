@@ -4,3 +4,8 @@ RPi.GPIO==0.7.1
 requests==2.31.0
 aiohttp==3.9.1 
 adafruit-circuitpython-charlcd
+paho-mqtt
+RPi.GPIO
+pigpio
+adafruit-blinka
+adafruit-circuitpython-character-lcd
