@@ -1,1 +1,1 @@
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://35.186.151.185:8000'; 
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000'; 
