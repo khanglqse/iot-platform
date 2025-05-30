@@ -9,8 +9,16 @@ class SensorService:
         Get all sensors grouped by location
         """
         try:
-            # Get the latest reading for each sensor
+            # First get all devices from sensor_devices collection
+            devices = await db.sensor_devices.find().to_list(None)
+            
+            # Get the latest reading for each device
             pipeline = [
+                {
+                    "$match": {
+                        "device_id": {"$in": [device["device_id"] for device in devices]}
+                    }
+                },
                 {
                     "$sort": {"timestamp": -1}
                 },
@@ -42,10 +50,10 @@ class SensorService:
                             {
                                 "device_id": sensor["device_id"],
                                 "timestamp": sensor["timestamp"],
-                                "temperature": sensor["temperature"],
-                                "humidity": sensor["humidity"],
-                                "light_level": sensor["light_level"],
-                                "soil_moisture": sensor["soil_moisture"],
+                                "temperature": sensor.get("temperature", "0"),
+                                "humidity": sensor.get("humidity", "0"),
+                                "light_level": sensor.get("light_level", "0"),
+                                "soil_moisture": sensor.get("soil_moisture", "0"),
                                 "location": sensor["location"],
                                 "type": sensor["type"]
                             }
@@ -136,39 +144,39 @@ class SensorService:
                     serialized_doc = {
                         "device_id": doc.get("device_id"),
                         "timestamp": doc.get("date"),
-                        "temperature": doc.get("avg_temperature"),
-                        "humidity": doc.get("avg_humidity"),
-                        "light_level": doc.get("avg_light_level"),
-                        "soil_moisture": doc.get("avg_soil_moisture"),
+                        "temperature": doc.get("avg_temperature", "0"),
+                        "humidity": doc.get("avg_humidity", "0"),
+                        "light_level": doc.get("avg_light_level", "0"),
+                        "soil_moisture": doc.get("avg_soil_moisture", "0"),
                         "location": doc.get("location"),
                         "type": "summary",
                         "stats": {
                             "temperature": {
-                                "min": doc.get("min_temperature"),
-                                "max": doc.get("max_temperature"),
-                                "avg": doc.get("avg_temperature")
+                                "min": doc.get("min_temperature", "0"),
+                                "max": doc.get("max_temperature", "0"),
+                                "avg": doc.get("avg_temperature", "0")
                             },
                             "humidity": {
-                                "min": doc.get("min_humidity"),
-                                "max": doc.get("max_humidity"),
-                                "avg": doc.get("avg_humidity")
+                                "min": doc.get("min_humidity", "0"),
+                                "max": doc.get("max_humidity", "0"),
+                                "avg": doc.get("avg_humidity", "0")
                             },
                             "light_level": {
-                                "min": doc.get("min_light_level"),
-                                "max": doc.get("max_light_level"),
-                                "avg": doc.get("avg_light_level")
+                                "min": doc.get("min_light_level", "0"),
+                                "max": doc.get("max_light_level", "0"),
+                                "avg": doc.get("avg_light_level", "0")
                             },
                             "soil_moisture": {
-                                "min": doc.get("min_soil_moisture"),
-                                "max": doc.get("max_soil_moisture"),
-                                "avg": doc.get("avg_soil_moisture")
+                                "min": doc.get("min_soil_moisture", "0"),
+                                "max": doc.get("max_soil_moisture", "0"),
+                                "avg": doc.get("avg_soil_moisture", "0")
                             },
                             "battery": {
-                                "min": doc.get("min_battery"),
-                                "max": doc.get("max_battery"),
-                                "avg": doc.get("avg_battery")
+                                "min": doc.get("min_battery", "0"),
+                                "max": doc.get("max_battery", "0"),
+                                "avg": doc.get("avg_battery", "0")
                             },
-                            "record_count": doc.get("record_count")
+                            "record_count": doc.get("record_count", "0")
                         }
                     }
                     serialized_summary.append(serialized_doc)
@@ -195,12 +203,12 @@ class SensorService:
                 serialized_doc = {
                     "device_id": doc.get("device_id"),
                     "timestamp": doc.get("timestamp"),
-                    "temperature": doc.get("temperature"),
-                    "humidity": doc.get("humidity"),
-                    "light_level": doc.get("light_level"),
-                    "soil_moisture": doc.get("soil_moisture"),
+                    "temperature": doc.get("temperature", "0"),
+                    "humidity": doc.get("humidity", "0"),
+                    "light_level": doc.get("light_level", "0"),
+                    "soil_moisture": doc.get("soil_moisture", "0"),
                     "location": doc.get("location"),
-                    "type": doc.get("type")
+                    "type": "raw"
                 }
                 serialized_history.append(serialized_doc)
             return serialized_history
