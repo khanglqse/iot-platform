@@ -28,7 +28,7 @@ services:
       # - "3000:3000"
       - "80:80"
     environment:
-      - REACT_APP_API_URL=http://35.186.151.185/:8000
+      - REACT_APP_API_URL=http://35.186.151.185:8000
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     volumes:
