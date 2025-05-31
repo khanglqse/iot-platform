@@ -165,7 +165,7 @@ async def process_kafka_messages():
                                 producer.send(TOPIC_ALERTS, alert)
 
                                 # Save to MongoDB
-                                # alerts_collection.insert_one(alert)
+                                alerts_collection.insert_one(alert)
 
                             # Update history
                             sensor_history[key] = (timestamp, value)

@@ -61,7 +61,7 @@ const THRESHOLDS: { [key: string]: number } = {
 
 
 // Maximum number of data points to show in charts
-const MAX_DATA_POINTS = 50;
+const MAX_DATA_POINTS = 100;
 
 // Colors for different sensor types
 const SENSOR_COLORS: { [key: string]: string } = {
@@ -319,7 +319,7 @@ const Dashboard: React.FC = () => {
       </Card>
 
       {/* Overview Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} md={8} lg={8}>
           <Card bordered={false} style={{ borderRadius: '8px' }}>
             <Statistic
@@ -350,7 +350,7 @@ const Dashboard: React.FC = () => {
       </Row>
 
       {/* Charts Row */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
         {/* Device Types Pie Chart */}
         <Col xs={24} sm={24} md={12}>
           <Card title="Device Types Distribution" bordered={false} style={{ borderRadius: '8px' }}>
@@ -409,7 +409,8 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
+      {/* Device Status and Recent Activities */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
         {/* Device Status Table */}
         <Col xs={24} md={12}>
           <Card title="Device Status" bordered={false} style={{ borderRadius: '8px' }}>
@@ -437,9 +438,10 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Real-time Data Section */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24}>
+
+      {/* Real-time Sensor Charts */}
+      <Row gutter={[16, 16]}>
+      <Col xs={24} md={12} >
           <Card title="Recent Alerts" bordered={false} style={{ borderRadius: '8px' }}>
             <Table
               dataSource={realtimeAlerts}
@@ -495,79 +497,74 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
-      </Row>
-
-      {/* Replace the existing Real-time Chart section with new sensor type charts */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24}>
-          <Card title="Real-time Sensor Data" bordered={false} style={{ borderRadius: '8px' }}>
-            {Object.keys(groupedSensorData).map(sensorType => (
-              <div key={sensorType} style={{ marginBottom: '32px' }}>
-                <Title level={4} style={{ marginBottom: '16px' }}>
-                  {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} Sensor
-                </Title>
-                <Line
-                  data={formatSensorTypeData(sensorType)}
-                  xField="timestamp"
-                  yField="value"
-                  seriesField="location"
-                  smooth
-                  animation={false}
-                  point={{
-                    size: 4,
-                    shape: 'circle',
-                  }}
-                  meta={{
-                    timestamp: {
-                      alias: 'Time',
-                      formatter: (value) => new Date(value).toLocaleTimeString(),
-                    },
-                    value: {
-                      alias: 'Value',
-                    },
-                    location: {
-                      alias: 'Location',
-                    },
-                  }}
-                  xAxis={{
-                    type: 'time',
-                    tickCount: 5,
-                  }}
-                  yAxis={{
-                    title: {
-                      text: 'Value',
-                    },
-                  }}
-                  tooltip={{
-                    formatter: (datum) => {
-                      return {
-                        name: datum.location,
-                        value: datum.value.toFixed(2),
-                        time: new Date(datum.timestamp).toLocaleString(),
-                      };
-                    },
-                  }}
-                  annotations={[{
-                    type: 'line',
-                    start: ['min', THRESHOLDS[sensorType]],
-                    end: ['max', THRESHOLDS[sensorType]],
+        {Object.keys(groupedSensorData).map((sensorType, index) => (
+          <Col xs={24} md={12} key={sensorType}>
+            <Card 
+              title={`${sensorType.charAt(0).toUpperCase() + sensorType.slice(1).replace('_', ' ')} Sensor`} 
+              bordered={false} 
+              style={{ borderRadius: '8px', marginBottom: 16 }}
+            >
+              <Line
+                data={formatSensorTypeData(sensorType)}
+                xField="timestamp"
+                yField="value"
+                seriesField="location"
+                smooth
+                animation={false}
+                point={{
+                  size: 4,
+                  shape: 'circle',
+                }}
+                meta={{
+                  timestamp: {
+                    alias: 'Time',
+                    formatter: (value) => new Date(value).toLocaleTimeString(),
+                  },
+                  value: {
+                    alias: 'Value',
+                  },
+                  location: {
+                    alias: 'Location',
+                  },
+                }}
+                xAxis={{
+                  type: 'time',
+                  tickCount: 5,
+                }}
+                yAxis={{
+                  title: {
+                    text: 'Value',
+                  },
+                }}
+                tooltip={{
+                  formatter: (datum) => {
+                    return {
+                      name: datum.location,
+                      value: datum.value.toFixed(2),
+                      time: new Date(datum.timestamp).toLocaleString(),
+                    };
+                  },
+                }}
+                annotations={[{
+                  type: 'line',
+                  start: ['min', THRESHOLDS[sensorType]],
+                  end: ['max', THRESHOLDS[sensorType]],
+                  style: {
+                    stroke: SENSOR_COLORS[sensorType] || '#000000',
+                    lineDash: [4, 4],
+                  },
+                  text: {
+                    content: `${sensorType} threshold`,
+                    position: 'start',
                     style: {
-                      stroke: SENSOR_COLORS[sensorType] || '#000000',
-                      lineDash: [4, 4],
+                      fill: SENSOR_COLORS[sensorType] || '#000000',
                     },
-                    text: {
-                      content: `${sensorType} threshold`,
-                      position: 'start',
-                      style: {
-                        fill: SENSOR_COLORS[sensorType] || '#000000',
-                      },
-                    },
-                  }]}
-                />
-              </div>
-            ))}
-          </Card>
-        </Col>
+                  },
+                }]}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
     </div>
   );
