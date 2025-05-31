@@ -38,14 +38,25 @@ interface Alert {
   status: string;
 }
 
+// Add new interface for grouped sensor data
+interface GroupedSensorData {
+  [sensorType: string]: {
+    [location: string]: {
+      timestamp: string;
+      value: number;
+    }[];
+  };
+}
+
 // Define thresholds
 const THRESHOLDS: { [key: string]: number } = {
-  displacement: 20.0,
-  tilt: 3.0,
-  vibration: 0.5,
-  pore_pressure: 150,
-  crack_width: 2.0
+  "displacement": 29.0,
+    "tilt": 4.8,
+    "vibration": 0.65,
+    "pore_pressure": 168,
+    "crack_width": 2.3
 };
+
 
 // Maximum number of data points to show in charts
 const MAX_DATA_POINTS = 50;
@@ -76,6 +87,7 @@ const Dashboard: React.FC = () => {
     type: string;
     value: number;
   }[]>([]);
+  const [groupedSensorData, setGroupedSensorData] = useState<GroupedSensorData>({});
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -104,31 +116,33 @@ const Dashboard: React.FC = () => {
         if (message.type === 'sensor_data') {
           setRealtimeData(message.data);
           
-          // Update sensor history
-          const newDataPoints = Object.entries(message.data.sensors).map(([type, value]) => ({
-            timestamp: message.data.timestamp,
-            type,
-            value: value as number
-          }));
+          // Update grouped sensor data
+          setGroupedSensorData(prev => {
+            const newData = { ...prev };
+            const { location, timestamp, sensors } = message.data;
 
-          setSensorHistory(prev => {
-            const updated = [...prev, ...newDataPoints];
-            // Keep only the last MAX_DATA_POINTS for each sensor type
-            const groupedByType = updated.reduce((acc, curr) => {
-              if (!acc[curr.type]) {
-                acc[curr.type] = [];
+            // Update each sensor type
+            Object.entries(sensors).forEach(([sensorType, value]) => {
+              if (!newData[sensorType]) {
+                newData[sensorType] = {};
               }
-              acc[curr.type].push(curr);
-              return acc;
-            }, {} as { [key: string]: typeof newDataPoints });
+              if (!newData[sensorType][location]) {
+                newData[sensorType][location] = [];
+              }
 
-            const trimmed = Object.values(groupedByType).flatMap(points => 
-              points.slice(-MAX_DATA_POINTS)
-            );
+              // Add new data point
+              newData[sensorType][location].push({
+                timestamp,
+                value: value as number
+              });
 
-            return trimmed.sort((a, b) => 
-              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-            );
+              // Keep only the last MAX_DATA_POINTS
+              if (newData[sensorType][location].length > MAX_DATA_POINTS) {
+                newData[sensorType][location] = newData[sensorType][location].slice(-MAX_DATA_POINTS);
+              }
+            });
+
+            return newData;
           });
 
           if (message.alerts && message.alerts.length > 0) {
@@ -269,6 +283,20 @@ const Dashboard: React.FC = () => {
       render: (text: string) => new Date(text).toLocaleString()
     }
   ];
+
+  // Add new function to format data for sensor type charts
+  const formatSensorTypeData = (sensorType: string) => {
+    const sensorData = groupedSensorData[sensorType];
+    if (!sensorData) return [];
+
+    return Object.entries(sensorData).flatMap(([location, data]) =>
+      data.map(point => ({
+        timestamp: point.timestamp,
+        value: point.value,
+        location
+      }))
+    );
+  };
 
   if (loading) {
     return (
@@ -431,71 +459,77 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Real-time Charts */}
+      {/* Replace the existing Real-time Chart section with new sensor type charts */}
       <Row gutter={[16, 16]}>
-        {Object.entries(THRESHOLDS).map(([type, threshold]) => (
-          <Col xs={24} md={12} key={type}>
-            <Card title={`${type} Trend`} bordered={false} style={{ borderRadius: '8px' }}>
-              <Line
-                data={sensorHistory.filter(point => point.type === type)}
-                xField="timestamp"
-                yField="value"
-                smooth
-                animation={false}
-                point={{
-                  size: 4,
-                  shape: 'circle',
-                }}
-                meta={{
-                  timestamp: {
-                    alias: 'Time',
-                    formatter: (value) => new Date(value).toLocaleTimeString(),
-                  },
-                  value: {
-                    alias: 'Value',
-                  },
-                }}
-                xAxis={{
-                  type: 'time',
-                  tickCount: 5,
-                }}
-                yAxis={{
-                  title: {
-                    text: 'Value',
-                  },
-                }}
-                tooltip={{
-                  formatter: (datum) => {
-                    return {
-                      name: type,
-                      value: datum.value.toFixed(2),
-                      time: new Date(datum.timestamp).toLocaleString(),
-                    };
-                  },
-                }}
-                color={SENSOR_COLORS[type]}
-                annotations={[
-                  {
+        <Col xs={24}>
+          <Card title="Real-time Sensor Data" bordered={false} style={{ borderRadius: '8px' }}>
+            {Object.keys(groupedSensorData).map(sensorType => (
+              <div key={sensorType} style={{ marginBottom: '32px' }}>
+                <Title level={4} style={{ marginBottom: '16px' }}>
+                  {sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} Sensor
+                </Title>
+                <Line
+                  data={formatSensorTypeData(sensorType)}
+                  xField="timestamp"
+                  yField="value"
+                  seriesField="location"
+                  smooth
+                  animation={false}
+                  point={{
+                    size: 4,
+                    shape: 'circle',
+                  }}
+                  meta={{
+                    timestamp: {
+                      alias: 'Time',
+                      formatter: (value) => new Date(value).toLocaleTimeString(),
+                    },
+                    value: {
+                      alias: 'Value',
+                    },
+                    location: {
+                      alias: 'Location',
+                    },
+                  }}
+                  xAxis={{
+                    type: 'time',
+                    tickCount: 5,
+                  }}
+                  yAxis={{
+                    title: {
+                      text: 'Value',
+                    },
+                  }}
+                  tooltip={{
+                    formatter: (datum) => {
+                      return {
+                        name: datum.location,
+                        value: datum.value.toFixed(2),
+                        time: new Date(datum.timestamp).toLocaleString(),
+                      };
+                    },
+                  }}
+                  annotations={[{
                     type: 'line',
-                    start: ['min', threshold],
-                    end: ['max', threshold],
+                    start: ['min', THRESHOLDS[sensorType]],
+                    end: ['max', THRESHOLDS[sensorType]],
                     style: {
-                      stroke: SENSOR_COLORS[type],
+                      stroke: SENSOR_COLORS[sensorType] || '#000000',
                       lineDash: [4, 4],
                     },
                     text: {
-                      content: 'Threshold',
+                      content: `${sensorType} threshold`,
                       position: 'start',
                       style: {
-                        fill: SENSOR_COLORS[type],
+                        fill: SENSOR_COLORS[sensorType] || '#000000',
                       },
                     },
-                  },
-                ]}
-              />
-            </Card>
-          </Col>
-        ))}
+                  }]}
+                />
+              </div>
+            ))}
+          </Card>
+        </Col>
       </Row>
     </div>
   );

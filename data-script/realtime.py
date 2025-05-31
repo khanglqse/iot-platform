@@ -94,8 +94,8 @@ def main():
                         }
                         client.publish(topic, json.dumps(payload))
             
-            print(f"📦 Sent data batch at {payload}")
-            time.sleep(2)  # Wait for 2 seconds before next batch
+            print(f"📦 Sent data batch at {timestamp}")
+            time.sleep(1)  # Wait for 1 second before next batch
             
     except KeyboardInterrupt:
         print("\n🛑 Stopping sensor simulation...")

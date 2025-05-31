@@ -17,11 +17,11 @@ WS_PORT = 8765
 
 # Cảnh báo ngưỡng
 THRESHOLDS = {
-    "displacement": 20.0,
-    "tilt": 3.0,
-    "vibration": 0.5,
-    "pore_pressure": 150,
-    "crack_width": 2.0
+    "displacement": 29.0,
+    "tilt": 4.8,
+    "vibration": 0.65,
+    "pore_pressure": 168,
+    "crack_width": 2.3
 }
 
 # Store connected WebSocket clients
