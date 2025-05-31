@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Row, Col, Statistic, Table, DatePicker, Spin, Alert, Typography, Divider } from 'antd';
 import { 
   DashboardOutlined, 
@@ -21,6 +21,44 @@ import type { RangePickerProps } from 'antd/es/date-picker';
 const { RangePicker } = DatePicker;
 const { Title } = Typography;
 
+// Define types for sensor data
+interface SensorData {
+  location: string;
+  timestamp: string;
+  sensors: {
+    [key: string]: number;
+  };
+}
+
+interface Alert {
+  location: string;
+  sensor_type: string;
+  value: number;
+  timestamp: string;
+  status: string;
+}
+
+// Define thresholds
+const THRESHOLDS: { [key: string]: number } = {
+  displacement: 20.0,
+  tilt: 3.0,
+  vibration: 0.5,
+  pore_pressure: 150,
+  crack_width: 2.0
+};
+
+// Maximum number of data points to show in charts
+const MAX_DATA_POINTS = 50;
+
+// Colors for different sensor types
+const SENSOR_COLORS: { [key: string]: string } = {
+  displacement: '#1890ff',
+  tilt: '#52c41a',
+  vibration: '#722ed1',
+  pore_pressure: '#fa8c16',
+  crack_width: '#eb2f96'
+};
+
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +69,14 @@ const Dashboard: React.FC = () => {
     new Date(new Date().setDate(new Date().getDate() - 7)),
     new Date()
   ]);
+  const [realtimeData, setRealtimeData] = useState<SensorData | null>(null);
+  const [realtimeAlerts, setRealtimeAlerts] = useState<Alert[]>([]);
+  const [sensorHistory, setSensorHistory] = useState<{
+    timestamp: string;
+    type: string;
+    value: number;
+  }[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -39,6 +85,78 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchAnalyticsData();
   }, [dateRange]);
+
+  useEffect(() => {
+    // Connect to WebSocket
+    const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8765';
+    console.log(`🔌 Connecting to WebSocket at ${wsUrl}`);
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('✅ WebSocket Connected');
+    };
+
+    ws.onmessage = (event) => {
+      console.log('📥 Received WebSocket message:', event.data);
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'sensor_data') {
+          setRealtimeData(message.data);
+          
+          // Update sensor history
+          const newDataPoints = Object.entries(message.data.sensors).map(([type, value]) => ({
+            timestamp: message.data.timestamp,
+            type,
+            value: value as number
+          }));
+
+          setSensorHistory(prev => {
+            const updated = [...prev, ...newDataPoints];
+            // Keep only the last MAX_DATA_POINTS for each sensor type
+            const groupedByType = updated.reduce((acc, curr) => {
+              if (!acc[curr.type]) {
+                acc[curr.type] = [];
+              }
+              acc[curr.type].push(curr);
+              return acc;
+            }, {} as { [key: string]: typeof newDataPoints });
+
+            const trimmed = Object.values(groupedByType).flatMap(points => 
+              points.slice(-MAX_DATA_POINTS)
+            );
+
+            return trimmed.sort((a, b) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            );
+          });
+
+          if (message.alerts && message.alerts.length > 0) {
+            setRealtimeAlerts(prev => [...message.alerts, ...prev].slice(0, 10));
+          }
+        } else if (message.type === 'connection_status') {
+          console.log('📡 Connection status:', message);
+        }
+      } catch (error) {
+        console.error('❌ Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('❌ WebSocket error:', error);
+    };
+
+    ws.onclose = (event) => {
+      console.log('🔌 WebSocket Disconnected:', event.code, event.reason);
+    };
+
+    return () => {
+      if (wsRef.current) {
+        console.log('🔌 Closing WebSocket connection');
+        wsRef.current.close();
+      }
+    };
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -287,6 +405,97 @@ const Dashboard: React.FC = () => {
             />
           </Card>
         </Col>
+      </Row>
+
+      {/* Real-time Data Section */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
+          <Card title="Recent Alerts" bordered={false} style={{ borderRadius: '8px' }}>
+            {realtimeAlerts.length > 0 ? (
+              <div>
+                {realtimeAlerts.map((alert, index) => (
+                  <Alert
+                    key={index}
+                    message={`${alert.sensor_type} Alert`}
+                    description={`Location: ${alert.location}, Value: ${alert.value}`}
+                    type="error"
+                    showIcon
+                    style={{ marginBottom: '8px' }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p>No recent alerts</p>
+            )}
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Real-time Charts */}
+      <Row gutter={[16, 16]}>
+        {Object.entries(THRESHOLDS).map(([type, threshold]) => (
+          <Col xs={24} md={12} key={type}>
+            <Card title={`${type} Trend`} bordered={false} style={{ borderRadius: '8px' }}>
+              <Line
+                data={sensorHistory.filter(point => point.type === type)}
+                xField="timestamp"
+                yField="value"
+                smooth
+                animation={false}
+                point={{
+                  size: 4,
+                  shape: 'circle',
+                }}
+                meta={{
+                  timestamp: {
+                    alias: 'Time',
+                    formatter: (value) => new Date(value).toLocaleTimeString(),
+                  },
+                  value: {
+                    alias: 'Value',
+                  },
+                }}
+                xAxis={{
+                  type: 'time',
+                  tickCount: 5,
+                }}
+                yAxis={{
+                  title: {
+                    text: 'Value',
+                  },
+                }}
+                tooltip={{
+                  formatter: (datum) => {
+                    return {
+                      name: type,
+                      value: datum.value.toFixed(2),
+                      time: new Date(datum.timestamp).toLocaleString(),
+                    };
+                  },
+                }}
+                color={SENSOR_COLORS[type]}
+                annotations={[
+                  {
+                    type: 'line',
+                    start: ['min', threshold],
+                    end: ['max', threshold],
+                    style: {
+                      stroke: SENSOR_COLORS[type],
+                      lineDash: [4, 4],
+                    },
+                    text: {
+                      content: 'Threshold',
+                      position: 'start',
+                      style: {
+                        fill: SENSOR_COLORS[type],
+                      },
+                    },
+                  },
+                ]}
+              />
+            </Card>
+          </Col>
+        ))}
       </Row>
     </div>
   );
