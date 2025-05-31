@@ -30,12 +30,14 @@ interface SensorData {
   };
 }
 
+// Update the Alert interface to match the WebSocket message format
 interface Alert {
   location: string;
   sensor_type: string;
   value: number;
   timestamp: string;
   status: string;
+  message: string;
 }
 
 // Add new interface for grouped sensor data
@@ -439,22 +441,58 @@ const Dashboard: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24}>
           <Card title="Recent Alerts" bordered={false} style={{ borderRadius: '8px' }}>
-            {realtimeAlerts.length > 0 ? (
-              <div>
-                {realtimeAlerts.map((alert, index) => (
-                  <Alert
-                    key={index}
-                    message={`${alert.sensor_type} Alert`}
-                    description={`Location: ${alert.location}, Value: ${alert.value}`}
-                    type="error"
-                    showIcon
-                    style={{ marginBottom: '8px' }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p>No recent alerts</p>
-            )}
+            <Table
+              dataSource={realtimeAlerts}
+              rowKey={(record) => `${record.location}-${record.timestamp}-${record.sensor_type}`}
+              pagination={false}
+              size="small"
+              columns={[
+                {
+                  title: 'Location',
+                  dataIndex: 'location',
+                  key: 'location',
+                },
+                {
+                  title: 'Sensor Type',
+                  dataIndex: 'sensor_type',
+                  key: 'sensor_type',
+                  render: (text: string) => text.charAt(0).toUpperCase() + text.slice(1).replace('_', ' '),
+                },
+                {
+                  title: 'Value',
+                  dataIndex: 'value',
+                  key: 'value',
+                  render: (value: number) => value.toFixed(2),
+                },
+                {
+                  title: 'Status',
+                  dataIndex: 'status',
+                  key: 'status',
+                  render: (status: string) => (
+                    <span style={{
+                      color: status === 'CRITICAL' ? '#ff4d4f' :
+                             status === 'WARNING' ? '#faad14' :
+                             '#52c41a',
+                      fontWeight: 'bold'
+                    }}>
+                      {status}
+                    </span>
+                  ),
+                },
+                {
+                  title: 'Message',
+                  dataIndex: 'message',
+                  key: 'message',
+                  ellipsis: true,
+                },
+                {
+                  title: 'Time',
+                  dataIndex: 'timestamp',
+                  key: 'timestamp',
+                  render: (text: string) => new Date(text).toLocaleString(),
+                },
+              ]}
+            />
           </Card>
         </Col>
       </Row>

@@ -71,37 +71,56 @@ def publish_all(client, data):
 
 def main():
     print("🚀 Starting real-time sensor data simulation...")
-    
+
     client = mqtt.Client()
     client.connect(MQTT_BROKER, MQTT_PORT)
     client.loop_start()
+
+    previous_values = {}  # Key: sensor_id, Value: last value
 
     try:
         while True:
             current_time = datetime.utcnow()
             timestamp = current_time.isoformat() + "Z"
-            
+
             for location in LOCATIONS:
                 for sensor_type, (min_val, max_val) in SENSOR_TYPES.items():
                     for i in range(SENSORS_PER_TYPE):
                         sensor_id = generate_sensor_id(sensor_type, location, i)
-                        value = round(random.uniform(min_val, max_val), 2)
                         topic = f"{MQTT_TOPIC_PREFIX}/{location}/{sensor_type}"
+
+                        # Get previous value
+                        prev = previous_values.get(sensor_id)
+
+                        if prev is not None:
+                            # Generate new value within ±10%
+                            delta = prev * 0.10
+                            new_min = max(min_val, prev - delta)
+                            new_max = min(max_val, prev + delta)
+                            value = round(random.uniform(new_min, new_max), 2)
+                        else:
+                            # First time random
+                            value = round(random.uniform(min_val, max_val), 2)
+
+                        # Save current value as previous for next round
+                        previous_values[sensor_id] = value
+
                         payload = {
                             "sensorId": sensor_id,
                             "value": value,
                             "timestamp": timestamp
                         }
                         client.publish(topic, json.dumps(payload))
-            
+
             print(f"📦 Sent data batch at {timestamp}")
-            time.sleep(1)  # Wait for 1 second before next batch
-            
+            time.sleep(1)
+
     except KeyboardInterrupt:
         print("\n🛑 Stopping sensor simulation...")
     finally:
         client.loop_stop()
         client.disconnect()
+
 
 if __name__ == "__main__":
     main()
