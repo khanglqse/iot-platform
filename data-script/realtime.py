@@ -69,16 +69,27 @@ def publish_all(client, data):
     for topic, payload in data:
         client.publish(topic, json.dumps(payload))
 
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("✅ MQTT connected successfully")
+    else:
+        print(f"❌ MQTT connection failed with code {rc}")
+
 def main():
     print("🚀 Starting real-time sensor data simulation...")
 
     client = mqtt.Client()
-    client.connect(MQTT_BROKER, MQTT_PORT)
-    client.loop_start()
-
-    previous_values = {}  # Key: sensor_id, Value: last value
+    client.on_connect = on_connect  # Gắn callback kết nối
 
     try:
+        client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+        client.loop_start()
+
+        # Đợi một chút để đảm bảo callback `on_connect` được gọi
+        time.sleep(2)
+
+        previous_values = {}
+
         while True:
             current_time = datetime.utcnow()
             timestamp = current_time.isoformat() + "Z"
@@ -89,20 +100,15 @@ def main():
                         sensor_id = generate_sensor_id(sensor_type, location, i)
                         topic = f"{MQTT_TOPIC_PREFIX}/{location}/{sensor_type}"
 
-                        # Get previous value
                         prev = previous_values.get(sensor_id)
-
                         if prev is not None:
-                            # Generate new value within ±10%
                             delta = prev * 0.10
                             new_min = max(min_val, prev - delta)
                             new_max = min(max_val, prev + delta)
                             value = round(random.uniform(new_min, new_max), 2)
                         else:
-                            # First time random
                             value = round(random.uniform(min_val, max_val), 2)
 
-                        # Save current value as previous for next round
                         previous_values[sensor_id] = value
 
                         payload = {
@@ -110,16 +116,22 @@ def main():
                             "value": value,
                             "timestamp": timestamp
                         }
-                        client.publish(topic, json.dumps(payload))
+
+                        info = client.publish(topic, json.dumps(payload))
+                        if info.rc != 0:
+                            print(f"⚠️ Publish failed for topic {topic}")
 
             print(f"📦 Sent data batch at {timestamp}")
             time.sleep(1)
 
     except KeyboardInterrupt:
         print("\n🛑 Stopping sensor simulation...")
+    except Exception as e:
+        print(f"💥 Error: {e}")
     finally:
         client.loop_stop()
         client.disconnect()
+
 
 
 if __name__ == "__main__":
