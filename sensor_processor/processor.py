@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 from pymongo import MongoClient
 from dateutil import parser
 # Kafka Config
-KAFKA_BROKER = os.environ.get('KAFKA_BROKER', 'localhost:9092')
-GROUP_ID = os.environ.get("GROUP_ID", "processor-group-1")
+KAFKA_SERVER = os.getenv('KAFKA_SERVER', 'localhost:9092')
+GROUP_ID = os.getenv("GROUP_ID", "processor-group-1")
 TOPIC_IN = 'sensor.grouped'
 TOPIC_ALERTS = 'sensor.alerts'
 
@@ -17,7 +17,7 @@ WS_HOST = '0.0.0.0'
 WS_PORT = 8765
 
 # MongoDB Config
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 MONGO_DB = "iot_db"
 MONGO_ALERTS_COLLECTION = "alerts"
 
@@ -111,17 +111,17 @@ def check_alert(sensor_type, current_value, previous_value, previous_time, curre
 
 
 async def process_kafka_messages():
-    print(f"📡 Connecting to Kafka at {KAFKA_BROKER}")
+    print(f"📡 Connecting to Kafka at {KAFKA_SERVER}")
     consumer = KafkaConsumer(
         TOPIC_IN,
-        bootstrap_servers=KAFKA_BROKER,
+        bootstrap_servers=KAFKA_SERVER,
         group_id=GROUP_ID,
         value_deserializer=lambda m: json.loads(m.decode()),
         enable_auto_commit=True
     )
 
     producer = KafkaProducer(
-        bootstrap_servers=KAFKA_BROKER,
+        bootstrap_servers=KAFKA_SERVER,
         value_serializer=lambda v: json.dumps(v).encode()
     )
 
@@ -181,6 +181,9 @@ async def process_kafka_messages():
 
                     except Exception as e:
                         print(f"❌ Error processing message: {e}")
+        else:
+            print("🔄 No messages received from Kafka")
+            await asyncio.sleep(1)
 
 async def main():
     await asyncio.gather(

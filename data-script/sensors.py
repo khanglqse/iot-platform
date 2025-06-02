@@ -33,7 +33,7 @@ SENSORS_PER_TYPE = 2
 
 # TIME CONFIG
 MIN_INTERVAL_MINUTES = 10
-DAYS = 1
+DAYS = 10
 
 def generate_sensor_id(sensor_type, location, index):
     return f"{sensor_type[:3]}-{location[:3]}-{index+1:02}"
@@ -67,41 +67,43 @@ def generate_all_data():
 
 def publish_all(client, data):
     for topic, payload in data:
-        client.publish(topic, json.dumps(payload))
+        print(f"📤 Sending to {topic}", payload)
+        info = client.publish(topic, json.dumps(payload))
+        if info.rc != 0:
+            print(f"⚠️ Publish failed for topic {topic}")
+        time.sleep(1)    
 
 def main():
-    print("🚀 Starting real-time sensor data simulation...")
+    start_time_total = time.time()
     
+    total_records = calculate_total_records()
+    print(f"📊 Total records to generate: {total_records:,}")
+
+    print("🧠 Generating data...")
+    gen_start = time.time()
+    data = generate_all_data()
+    gen_time = time.time() - gen_start
+    print(f"⏱️ Data generation took: {gen_time:.2f} seconds")
+
+    print("🚀 Sending all data as fast as possible...")
+    send_start = time.time()
     client = mqtt.Client()
     client.connect(MQTT_BROKER, MQTT_PORT)
     client.loop_start()
+    publish_all(client, data)
+    # publish_all_parallel(client, data, max_workers=50)
 
-    try:
-        while True:
-            current_time = datetime.utcnow()
-            timestamp = current_time.isoformat() + "Z"
-            
-            for location in LOCATIONS:
-                for sensor_type, (min_val, max_val) in SENSOR_TYPES.items():
-                    for i in range(SENSORS_PER_TYPE):
-                        sensor_id = generate_sensor_id(sensor_type, location, i)
-                        value = round(random.uniform(min_val, max_val), 2)
-                        topic = f"{MQTT_TOPIC_PREFIX}/{location}/{sensor_type}"
-                        payload = {
-                            "sensorId": sensor_id,
-                            "value": value,
-                            "timestamp": timestamp
-                        }
-                        client.publish(topic, json.dumps(payload))
-            
-            print(f"📦 Sent data batch at {timestamp}")
-            time.sleep(2)  # Wait for 2 seconds before next batch
-            
-    except KeyboardInterrupt:
-        print("\n🛑 Stopping sensor simulation...")
-    finally:
-        client.loop_stop()
-        client.disconnect()
+    client.loop_stop()
+    client.disconnect()
+    send_time = time.time() - send_start
+    print(f"⏱️ Data sending took: {send_time:.2f} seconds")
+
+    total_time = time.time() - start_time_total
+    print(f"✅ Done. Total execution time: {total_time:.2f} seconds")
+    print(f"📈 Performance metrics:")
+    print(f"   - Records per second: {total_records/total_time:.2f}")
+    print(f"   - Generation speed: {total_records/gen_time:.2f} records/sec")
+    print(f"   - Sending speed: {total_records/send_time:.2f} records/sec")
 
 if __name__ == "__main__":
     main()

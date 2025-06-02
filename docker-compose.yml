@@ -9,14 +9,14 @@ services:
       - "8000:8000"
     environment:
       - MONGODB_URL=mongodb://mongodb:27017
-      - MQTT_BROKER=mqtt
+      - MQTT_BROKER=haproxy
       - MQTT_PORT=1883
       - RASA_URL=http://rasa:5005
     volumes:
       - ./be:/app
     depends_on:
       - mongodb
-      - mqtt
+      # - mqtt
     networks:
       - iot-network
 
@@ -65,19 +65,69 @@ services:
       - mongodb_data:/data/db
     networks:
       - iot-network
-
-  mqtt:
-    image: eclipse-mosquitto:latest
+  haproxy:
+    image: haproxy:latest
+    container_name: haproxy
     ports:
-      - "1883:1883"
-      - "9001:9001"
+      - "1883:1883"    # expose MQTT port ra bên ngoài
     volumes:
-      - ./be/mosquitto/config:/mosquitto/config
-      - ./be/mosquitto/data:/mosquitto/data
-      - ./be/mosquitto/log:/mosquitto/log
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - emqx1
+      - emqx2
+      - emqx3
     networks:
       - iot-network
 
+  emqx1:
+    image: emqx/emqx:latest
+    container_name: emqx1
+    hostname: emqx1
+    environment:
+      - EMQX_NAME=emqx1
+      - EMQX_CLUSTER__DISCOVERY=static
+      - EMQX_CLUSTER__STATIC__SEEDS=emqx1@emqx1,emqx2@emqx2,emqx3@emqx3
+    networks:
+      - iot-network
+
+  emqx2:
+    image: emqx/emqx:latest
+    container_name: emqx2
+    hostname: emqx2
+    environment:
+      - EMQX_NAME=emqx2
+      - EMQX_CLUSTER__DISCOVERY=static
+      - EMQX_CLUSTER__STATIC__SEEDS=emqx1@emqx1,emqx2@emqx2,emqx3@emqx3
+    networks:
+      - iot-network
+
+  emqx3:
+    image: emqx/emqx:latest
+    container_name: emqx3
+    hostname: emqx3
+    environment:
+      - EMQX_NAME=emqx3
+      - EMQX_CLUSTER__DISCOVERY=static
+      - EMQX_CLUSTER__STATIC__SEEDS=emqx1@emqx1,emqx2@emqx2,emqx3@emqx3
+    networks:
+      - iot-network
+  # mqtt:
+  #   image: eclipse-mosquitto:latest
+  #   ports:
+  #     - "1883:1883"
+  #     - "9001:9001"
+  #   volumes:
+  #     - ./be/mosquitto/config:/mosquitto/config
+  #     - ./be/mosquitto/data:/mosquitto/data
+  #     - ./be/mosquitto/log:/mosquitto/log
+  #   networks:
+  #     - iot-network
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    # volumes:
+    #   - redis_data:/data
   # action-server:
   #   build: ./rasa
   #   image: khangfu/action-server:latest
@@ -101,10 +151,12 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:latest
+    restart: always
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -121,11 +173,12 @@ services:
       dockerfile: Dockerfile
     environment:
       - KAFKA_SERVER=kafka:29092
-      - MQTT_BROKER=mqtt
+      - MQTT_BROKER=haproxy
       - MQTT_PORT=1883
     depends_on:
       - kafka
-      - mqtt
+      # - mqtt
+    restart: always
     networks:
       - iot-network
 
@@ -136,11 +189,12 @@ services:
     ports:
       - "8765:8765"
     environment:
-      - KAFKA_BROKER=kafka:29092
+      - MONGO_URI=mongodb://mongodb:27017
+      - KAFKA_SERVER=kafka:29092
       - GROUP_ID=processor-group-1
     depends_on:
       - kafka
-      - mqtt
+    restart: always
     networks:
       - iot-network
 

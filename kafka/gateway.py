@@ -2,27 +2,47 @@
 
 import paho.mqtt.client as mqtt
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 import json
 from datetime import datetime
 from collections import defaultdict
 import os
+import time
 
 # Constants
 KAFKA_TOPIC = 'sensor.grouped'
-KAFKA_SERVER = os.environ.get('KAFKA_SERVER', 'localhost:9092')
-MQTT_BROKER = os.environ.get('MQTT_BROKER', 'localhost')
-MQTT_PORT = int(os.environ.get('MQTT_PORT', 1883))
+KAFKA_SERVER = os.getenv('KAFKA_SERVER', 'localhost:9092')
+MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')
+MQTT_PORT = int(os.getenv('MQTT_PORT', 1883))
 
 # Sensor state
 cache = defaultdict(dict)
 REQUIRED_TYPES = ['displacement', 'tilt', 'vibration', 'pore_pressure', 'crack_width']
-message_count = 0  # Counter for received messages
+message_count = 0
 
-producer = KafkaProducer(bootstrap_servers=KAFKA_SERVER,
-                         value_serializer=lambda v: json.dumps(v).encode())
+def check_kafka_connection():
+    try:
+        producer = KafkaProducer(
+            bootstrap_servers=KAFKA_SERVER,
+            value_serializer=lambda v: json.dumps(v).encode()
+        )
+        test_msg = {
+            "test": True,
+            "timestamp": time.time()
+        }
+        future = producer.send(KAFKA_TOPIC, test_msg)
+        result = future.get(timeout=5)
+        print("✅ Kafka connected successfully and test message sent.")
+        return producer
+    except KafkaError as e:
+        print(f"❌ Kafka connection failed: {e}")
+        return None
+
+# This will be initialized after checking Kafka
+producer = None
 
 def on_message(client, userdata, msg):
-    global message_count
+    global message_count, producer
     try:
         message_count += 1
         print(f"📥 Received MQTT message on topic: {msg.topic}")
@@ -57,12 +77,35 @@ def on_message(client, userdata, msg):
         print(f"❌ Error processing message: {e}")
         print(f"Message content: {msg.payload}")
 
-client = mqtt.Client()
-client.on_message = on_message
-client.connect(MQTT_BROKER, MQTT_PORT)
-client.subscribe("dam/+/+")
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        print("✅ MQTT connected successfully")
+        client.subscribe("dam/+/+")
+    else:
+        print(f"❌ MQTT connection failed with code {rc}")
 
-print(f"🚀 Gateway Aggregator started...")
-print(f"📡 Connected to MQTT broker at {MQTT_BROKER}:{MQTT_PORT}")
-print(f"📡 Connected to Kafka at {KAFKA_SERVER}")
-client.loop_forever()
+def main():
+    global producer
+    print("🚀 Gateway Aggregator starting...")
+
+    # Check Kafka first
+    producer = check_kafka_connection()
+    if not producer:
+        print("💥 Exiting due to Kafka connection failure.")
+        return
+
+    # Then connect MQTT
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    try:
+        client.connect(MQTT_BROKER, MQTT_PORT)
+        print(f"📡 Connected to MQTT broker at {MQTT_BROKER}:{MQTT_PORT}")
+        print(f"📡 Connected to Kafka at {KAFKA_SERVER}")
+        client.loop_forever()
+    except Exception as e:
+        print(f"💥 MQTT connection failed: {e}")
+
+if __name__ == "__main__":
+    main()
