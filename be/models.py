@@ -55,6 +55,13 @@ class Timer(BaseModel):
     is_active: bool = True
     created_at: datetime = datetime.now()
     last_run: Optional[datetime] = None
+class Alert(BaseModel):
+    id: str
+    location: str
+    sensor_type: str
+    value: float
+    timestamp: str
+    message: str
 
 class SensorReading(BaseModel):
     sensor_id: str

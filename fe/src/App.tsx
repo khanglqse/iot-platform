@@ -9,6 +9,8 @@ import Dashboard from './pages/Dashboard';
 import Trigger from './pages/Trigger';
 import TriggerList from './pages/TriggerList';
 import VoiceButton from './components/VoiceButton';
+import Alerts from './pages/Alerts';
+import Settings from './pages/Settings';
 import './App.css';
 
 const { Header, Content, Sider } = Layout;
@@ -101,6 +103,12 @@ function App() {
               <Menu.Item key="4" icon={<ThunderboltOutlined />}>
                 <Link to="/triggers">Triggers</Link>
               </Menu.Item>
+              <Menu.Item key="5" icon={<DashboardOutlined />}>
+                <Link to="/alerts">Alerts</Link>
+              </Menu.Item>
+              <Menu.Item key="6" icon={<DashboardOutlined />}>
+                <Link to="/settings">Settings</Link>
+              </Menu.Item>
             </Menu>
           </Sider>
           <Layout style={{ padding: '0 24px 24px' }}>
@@ -119,6 +127,8 @@ function App() {
                 <Route path="/triggers" element={<TriggerList />} />
                 <Route path="/trigger/create" element={<Trigger />} />
                 <Route path="/devices/:id" element={<DeviceDetail />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/settings" element={<Settings />} />
               </Routes>
             </Content>
           </Layout>
