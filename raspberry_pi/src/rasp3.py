@@ -195,13 +195,13 @@ def on_message(client, userdata, message):
     global current_music_process
 
     topic = message.topic
-    payload = message.payload.decode("utf-8")
+    payload = message.payload
     print(f"Topic: {topic}, Payload: {payload}")
 
     device_id = topic.split("/")[-1]
 
     try:
-        data = json.loads(payload)
+        data = json.loads(current_music_process.payload.decode('utf-8'))
     except Exception as e:
         print(f"Lỗi payload JSON: {e}")
         return
@@ -250,7 +250,8 @@ def on_message(client, userdata, message):
         else:
             search_query = data.get("search")
             if search_query:
-                play_music(search_query)
+                print(f"Tìm kiếm: {search_query}")
+                # play_music(search_query)
             else:
                 print("Thiếu thông tin 'search' trong payload!")
 
