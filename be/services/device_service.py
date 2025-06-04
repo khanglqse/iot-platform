@@ -11,7 +11,7 @@ class DeviceService:
 
     # Fan methods
     async def create_fan(self, fan: Fan) -> Fan:
-        result = await db.devices.insert_one(fan.dict())
+        result = await db.device_status.insert_one(fan.dict())
         return {**fan.dict(), "id": str(result.inserted_id)}
 
     async def set_fan_speed(self, device_id: str, speed: int):
@@ -36,7 +36,7 @@ class DeviceService:
 
     # AC methods
     async def create_ac(self, ac: AirConditioner) -> AirConditioner:
-        result = await db.devices.insert_one(ac.dict())
+        result = await db.device_status.insert_one(ac.dict())
         return {**ac.dict(), "id": str(result.inserted_id)}
 
     async def set_ac_temperature(self, device_id: str, temperature: int):
@@ -61,7 +61,7 @@ class DeviceService:
 
     # Speaker methods
     async def create_speaker(self, speaker: Speaker) -> Speaker:
-        result = await db.devices.insert_one(speaker.dict())
+        result = await db.device_status.insert_one(speaker.dict())
         return {**speaker.dict(), "id": str(result.inserted_id)}
 
     async def set_speaker_volume(self, device_id: str, volume: int):
@@ -86,7 +86,7 @@ class DeviceService:
 
     # Light methods
     async def create_light(self, light: Light) -> Light:
-        result = await db.devices.insert_one(light.dict())
+        result = await db.device_status.insert_one(light.dict())
         return {**light.dict(), "id": str(result.inserted_id)}
 
     async def set_light_brightness(self, device_id: str, brightness: int):
@@ -111,7 +111,7 @@ class DeviceService:
 
     # Door methods
     async def create_door(self, door: Door) -> Door:
-        result = await db.devices.insert_one(door.dict())
+        result = await db.device_status.insert_one(door.dict())
         return {**door.dict(), "id": str(result.inserted_id)}
 
     async def control_door_lock(self, device_id: str, action: str):
@@ -171,7 +171,7 @@ class DeviceService:
         await db.device_logs.insert_one(log_entry)
         
         if "name" in updates or "location" in updates:
-            await db.devices.update_one(
+            await db.device_status.update_one(
                 {"id": device_id},
                 {"$set": updates}
             )
@@ -180,11 +180,21 @@ class DeviceService:
         return status_update
 
     async def get_device_details(self, device_id: str):
-        device = await db.devices.find_one(
+        device = await db.device_status.find_one(
             {"id": device_id},
             projection={"_id": 0}
         )
         return device if device else {"status": "not_found"}
+
+    async def get_device_by_name(self, name: str):
+        """
+        Find a device by its name
+        """
+        device = await db.device_status.find_one(
+            {"name": {"$regex": f"^{name}$", "$options": "i"}},  # ^$ để khớp toàn bộ chuỗi
+            projection={"_id": 0}
+        )
+        return device if device else None
 
     async def get_device_logs(self, device_id: str, limit: int = 50, skip: int = 0):
         try:

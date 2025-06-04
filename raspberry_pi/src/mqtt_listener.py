@@ -30,7 +30,8 @@ class MQTTListener:
 
     def on_message(self, client, userdata, msg):
         try:
-            payload = json.loads(msg.payload.decode())
+            print(msg.payload.decode('utf-8'))
+            payload = json.loads(msg.payload.decode('utf-8'))
             print(f"\nReceived message on topic {msg.topic}:")
             print(f"Payload: {json.dumps(payload, indent=2)}")
         except Exception as e:

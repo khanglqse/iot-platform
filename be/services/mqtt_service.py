@@ -375,7 +375,7 @@ class MQTTService:
     async def publish_message(self, topic: str, payload: Dict[str, Any]) -> bool:
         """Publish a message to an MQTT topic"""
         try:
-            message = json.dumps(payload)
+            message = json.dumps(payload).encode('utf-8')
             result = self.mqtt_client.publish(topic, message)
             if result.rc != 0:
                 logger.error(f"Error publishing message to {topic}: {result.rc}")
