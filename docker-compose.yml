@@ -23,7 +23,7 @@ services:
   frontend:
     build:
       context: ./fe
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prd
     ports:
       - "443:443"
       - "80:80"
