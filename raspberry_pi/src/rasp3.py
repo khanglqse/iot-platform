@@ -130,64 +130,54 @@ def play_music(search_query):
         print(f"Lỗi khi phát nhạc: {e}")
 
 def nec_send(pi, gpio, data):
-    """
-    Gửi mã NEC 32-bit trên gpio bằng pigpio.
+    MARK = 560
+    SPACE = 560
 
-    data: int mã NEC (ví dụ 0x20DF10EF)
-    """
-    MARK = 560  # microseconds bật sóng 38kHz
-    SPACE = 560  # microseconds tắt sóng
-
-    def send_mark(microseconds):
-        pi.wave_add_generic([pigpio.pulse(1 << gpio, 0, microseconds)])
-    
-    def send_space(microseconds):
-        pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, microseconds)])
-
-    # Tạo sóng 38kHz bật tắt (khoảng 26us chu kỳ, 50% duty cycle)
-    def carrier(microseconds):
+    def carrier_pulses(microseconds):
         cycles = int(microseconds / 26)
         pulses = []
         for _ in range(cycles):
             pulses.append(pigpio.pulse(1 << gpio, 0, 13))
             pulses.append(pigpio.pulse(0, 1 << gpio, 13))
-        pi.wave_add_generic(pulses)
+        return pulses
 
-    pi.wave_clear()
+    pulses = []
 
-    # Lead code NEC: MARK 9ms + SPACE 4.5ms
-    carrier(9000)
-    pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, 4500)])
+    # Lead code: 9ms mark + 4.5ms space
+    pulses += carrier_pulses(9000)
+    pulses.append(pigpio.pulse(0, 1 << gpio, 4500))
 
-    # Gửi 32 bit data LSB first
+    # Gửi 32 bit (LSB first)
     for i in range(32):
         bit = (data >> i) & 1
-        carrier(MARK)
+        pulses += carrier_pulses(MARK)
         if bit == 1:
-            pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, SPACE * 3)])  # 1 = 1.69ms space
+            pulses.append(pigpio.pulse(0, 1 << gpio, SPACE * 3))  # 1 = 1680µs
         else:
-            pi.wave_add_generic([pigpio.pulse(0, 1 << gpio, SPACE)])  # 0 = 560us space
+            pulses.append(pigpio.pulse(0, 1 << gpio, SPACE))      # 0 = 560µs
 
     # Kết thúc bằng MARK
-    carrier(MARK)
+    pulses += carrier_pulses(MARK)
 
+    pi.wave_clear()
+    pi.wave_add_generic(pulses)
     wave_id = pi.wave_create()
+
     if wave_id >= 0:
         pi.wave_send_once(wave_id)
         while pi.wave_tx_busy():
             time.sleep(0.001)
         pi.wave_delete(wave_id)
     else:
-        print("Tạo sóng IR lỗi!")
+        print("Lỗi khi tạo wave!")
 
 def send_ir_code(ir_code):
     try:
-        # Chuyển hex string thành int
         code_int = int(ir_code, 16)
-        print(f"Phát mã IR: {ir_code} (int: {code_int})")
+        print(f"Gửi mã IR: {ir_code} ({code_int})")
         nec_send(pi, IR_PIN, code_int)
     except Exception as e:
-        print(f"Lỗi khi phát IR: {e}")
+        print(f"Lỗi khi gửi IR: {e}")
 
 
 # Callback MQTT khi nhận message
@@ -201,7 +191,7 @@ def on_message(client, userdata, message):
     device_id = topic.split("/")[-1]
 
     try:
-        data = json.loads(current_music_process.payload.decode('utf-8'))
+        data = json.loads(message.payload.decode('utf-8'))
     except Exception as e:
         print(f"Lỗi payload JSON: {e}")
         return
@@ -251,16 +241,14 @@ def on_message(client, userdata, message):
             search_query = data.get("search")
             if search_query:
                 print(f"Tìm kiếm: {search_query}")
-                # play_music(search_query)
+                play_music(search_query)
             else:
                 print("Thiếu thông tin 'search' trong payload!")
 
     elif device_id == "25":  # IR module
-        ir_code = data.get("irCode")
-        if ir_code:
-            send_ir_code(ir_code)
-        else:
-            print("Thiếu thông tin 'irCode' trong payload!")
+        
+        send_ir_code("0x20DF10EF")
+       
 
 # Khi kết nối MQTT
 def on_connect(client, userdata, flags, rc):
