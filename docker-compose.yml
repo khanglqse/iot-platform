@@ -35,6 +35,9 @@ services:
     volumes:
       - ./fe:/app
       - /app/node_modules
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs/selfsigned.crt:/etc/nginx/ssl/selfsigned.crt:ro
+      - ./certs/selfsigned.key:/etc/nginx/ssl/selfsigned.key:ro
     depends_on:
       - backend
       - processor
