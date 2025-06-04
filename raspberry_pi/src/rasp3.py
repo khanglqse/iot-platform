@@ -265,7 +265,7 @@ def on_message(client, userdata, message):
 # Khi kết nối MQTT
 def on_connect(client, userdata, flags, rc):
     print("Đã kết nối MQTT với code: " + str(rc))
-    client.subscribe("iot/device/#")
+    client.subscribe("iot/devices/#")
 
 # Cấu hình MQTT
 client = mqtt.Client("RaspiClient")
