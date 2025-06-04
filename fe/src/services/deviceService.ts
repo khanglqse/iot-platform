@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Device, FanDevice, ACDevice, SpeakerDevice, LightDevice, DoorDevice } from '../types/devices';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://34.126.118.248:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://34.126.118.248/api';
 
 // Device Logs Interface
 export interface DeviceLog {

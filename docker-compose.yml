@@ -28,7 +28,7 @@ services:
       - "443:443"
       - "80:80"
     environment:
-      - REACT_APP_API_URL=https://34.126.118.248:8000
+      - REACT_APP_API_URL=/api
       - REACT_APP_WS_URL=ws://34.126.118.248:8765
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
