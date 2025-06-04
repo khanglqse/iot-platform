@@ -272,7 +272,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 # Địa chỉ MQTT broker (sửa lại IP cho đúng mạng của bạn)
-broker_address = "192.168.1.49"
+broker_address = "34.126.118.248"
 client.connect(broker_address, 1883, 60)
 
 # Vòng lặp chính
