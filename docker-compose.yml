@@ -40,7 +40,6 @@ services:
       - ./fe/certs/selfsigned.key:/etc/nginx/ssl/selfsigned.key:ro
     depends_on:
       - backend
-      - f
     networks:
       - iot-network
 
