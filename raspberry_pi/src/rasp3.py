@@ -11,7 +11,7 @@ import pigpio
 GPIO.setmode(GPIO.BCM)
 pi = pigpio.pi()
 # Buzzer
-BUZZER_PIN = 5
+BUZZER_PIN = 12
 GPIO.setup(BUZZER_PIN, GPIO.OUT)
 GPIO.output(BUZZER_PIN, False)
 

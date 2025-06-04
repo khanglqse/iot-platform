@@ -16,7 +16,7 @@ def publish_all_parallel(client, data, max_workers=10):
                 print(f"📦 Sent {i:,} messages")
 
 # CONFIG
-MQTT_BROKER = "localhost"
+MQTT_BROKER = "34.126.118.248"
 MQTT_PORT = 1883
 MQTT_TOPIC_PREFIX = "dam"
 

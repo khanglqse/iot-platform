@@ -15,7 +15,7 @@ class MQTTListener:
         
         # Connect to MQTT broker
         self.mqtt_client.connect(
-            os.getenv("MQTT_BROKER", "localhost"),
+            os.getenv("MQTT_BROKER", "34.126.118.248"),
             int(os.getenv("MQTT_PORT", 1883)),
             60
         )
@@ -30,7 +30,6 @@ class MQTTListener:
 
     def on_message(self, client, userdata, msg):
         try:
-            print(msg.payload.decode('utf-8'))
             payload = json.loads(msg.payload.decode('utf-8'))
             print(f"\nReceived message on topic {msg.topic}:")
             print(f"Payload: {json.dumps(payload, indent=2)}")

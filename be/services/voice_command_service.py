@@ -13,19 +13,17 @@ class VoiceCommandService:
         """
         text = text.lower().strip()
     
-        if "bật" in text or "mở" in text:
+        if "mở nhạc" in text:
+            search_term = text.split("mở nhạc")[-1].strip()
+            return await self._handle_device_command("Loa phòng khách", {"search": search_term})
+        elif "bật" in text or "mở" in text:
             device_name = text.split("bật")[-1].strip()
             return await self._handle_device_command(device_name,  {"isOn": True})
         elif "tắt" in text:
             device_name = text.split("tắt")[-1].strip()
             return await self._handle_device_command(device_name,  {"isOn": False})
                 
-        # Handle Speaker commands
-      
-        elif "mở nhạc" in text:
-            # Extract search term after "mở nhạc"
-            search_term = text.split("mở nhạc")[-1].strip()
-            return await self._handle_device_command("Loa phòng khách", {"search": search_term})
+       
 
         return {"status": "error", "message": "Không hiểu lệnh"}
 
