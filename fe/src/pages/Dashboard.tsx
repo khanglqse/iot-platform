@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     // Connect to WebSocket
-    const wsUrl = process.env.REACT_APP_WS_URL || 'ws://34.126.118.248:8765';
+    const wsUrl = "wss://34.126.118.248/ws/";
     console.log(`🔌 Connecting to WebSocket at ${wsUrl}`);
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
