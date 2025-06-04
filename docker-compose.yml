@@ -40,7 +40,7 @@ services:
       - ./fe/certs/selfsigned.key:/etc/nginx/ssl/selfsigned.key:ro
     depends_on:
       - backend
-      - processor
+      - f
     networks:
       - iot-network
 
@@ -114,17 +114,17 @@ services:
       - EMQX_CLUSTER__STATIC__SEEDS=emqx1@emqx1,emqx2@emqx2,emqx3@emqx3
     networks:
       - iot-network
-  # mqtt:
-  #   image: eclipse-mosquitto:latest
-  #   ports:
-  #     - "1883:1883"
-  #     - "9001:9001"
-  #   volumes:
-  #     - ./be/mosquitto/config:/mosquitto/config
-  #     - ./be/mosquitto/data:/mosquitto/data
-  #     - ./be/mosquitto/log:/mosquitto/log
-  #   networks:
-  #     - iot-network
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./be/mosquitto/config:/mosquitto/config
+      - ./be/mosquitto/data:/mosquitto/data
+      - ./be/mosquitto/log:/mosquitto/log
+    networks:
+      - iot-network
   redis:
     image: redis:7.0
     ports:
@@ -189,8 +189,8 @@ services:
     build:
       context: ./sensor_processor
       dockerfile: Dockerfile
-    ports:
-      - "8765:8765"
+    expose:
+      - "8765"
     environment:
       - MONGO_URI=mongodb://mongodb:27017
       - KAFKA_SERVER=kafka:29092
