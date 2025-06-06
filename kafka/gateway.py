@@ -12,7 +12,7 @@ import time
 # Constants
 KAFKA_TOPIC = 'sensor.grouped'
 KAFKA_SERVER = os.getenv('KAFKA_SERVER', 'localhost:9092')
-MQTT_BROKER = os.getenv('MQTT_BROKER', '34.126.118.248
+MQTT_BROKER = os.getenv('MQTT_BROKER', 'localhost')
 MQTT_PORT = int(os.getenv('MQTT_PORT', 1883))
 
 # Sensor state

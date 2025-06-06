@@ -102,7 +102,7 @@ def main():
 
                         prev = previous_values.get(sensor_id)
                         if prev is not None:
-                            delta = prev * 0.10
+                            delta = prev * 0.20
                             new_min = max(min_val, prev - delta)
                             new_max = min(max_val, prev + delta)
                             value = round(random.uniform(new_min, new_max), 2)
