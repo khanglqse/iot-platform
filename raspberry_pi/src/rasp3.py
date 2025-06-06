@@ -14,7 +14,8 @@ pi = pigpio.pi()
 BUZZER_PIN = 12
 GPIO.setup(BUZZER_PIN, GPIO.OUT)
 GPIO.output(BUZZER_PIN, False)
-
+GPIO.setup(5, GPIO.OUT)
+GPIO.output(5, False)
 # IR Transmitter pin
 IR_PIN = 17
 GPIO.setup(IR_PIN, GPIO.OUT)
