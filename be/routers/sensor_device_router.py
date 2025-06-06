@@ -10,7 +10,7 @@ router = APIRouter(
 
 sensor_device_service = SensorDeviceService()
 
-@router.get("/", response_model=List[Dict[str, Any]])
+@router.get("", response_model=List[Dict[str, Any]])
 async def get_all_sensor_devices():
     """Get all sensor devices"""
     return await sensor_device_service.get_all_sensor_devices()

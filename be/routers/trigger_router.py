@@ -6,11 +6,11 @@ from services.trigger_service import TriggerService
 router = APIRouter(prefix="/triggers", tags=["triggers"])
 trigger_service = TriggerService()
 
-@router.post("/", response_model=TriggerResponse)
+@router.post("", response_model=TriggerResponse)
 async def create_trigger(trigger: TriggerCreate):
     return await trigger_service.create_trigger(trigger)
 
-@router.get("/", response_model=List[TriggerResponse])
+@router.get("", response_model=List[TriggerResponse])
 async def get_triggers():
     return await trigger_service.get_triggers()
 
