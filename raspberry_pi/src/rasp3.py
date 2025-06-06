@@ -203,7 +203,11 @@ def on_message(client, userdata, message):
             GPIO.output(BUZZER_PIN, False)
         else:
             GPIO.output(BUZZER_PIN, False)
-
+    elif device_id == "1":  # Buzzer
+        if data.get("isOn"):
+            GPIO.output(5, True)
+        else:
+            GPIO.output(5, False)
     elif device_id == "21":  # Stepper
         if data.get("isOn"):
             stepper_rotate(3)
